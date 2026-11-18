@@ -1,5 +1,5 @@
 "use strict";
-const {selectMarket,normalizeMarket,quotesFromBbo}=require("../lib/polymarket-us");
+const {selectMarket,normalizeMarket,quotesFromBbo,quotesFromBook,lastTradeContext}=require("../lib/polymarket-us");
 const BASE="https://gateway.polymarket.us";
 async function getJson(url,signal){
   const response=await fetch(url,{signal,headers:{Accept:"application/json"}});
@@ -45,20 +45,39 @@ module.exports=async function handler(req,res){
         categoryUrl:"https://polymarket.us/category/btc",checked,checkedAt:new Date().toISOString()});
     }
     const market=normalizeMarket(selected);
-    let quotes=null,quoteWarning=null;
+    let quotes=null,quoteWarning=null,indicative=null;
     if(/^[a-z0-9-]{5,180}$/.test(market.slug)){
       try{
-        const bbo=await getJson(new URL("/v1/markets/"+market.slug+"/bbo",BASE),ctrl.signal);
-        quotes=quotesFromBbo(bbo);
-      }catch(e){quoteWarning="Quote feed unavailable right now. Confirm prices in the app.";}
+        const data=await getJson(new URL("/v1/markets/"+market.slug+"/bbo",BASE),ctrl.signal);
+        quotes=quotesFromBbo(data);
+        indicative=lastTradeContext(data);
+      }catch(e){quoteWarning="Top-of-book quote feed did not respond.";}
+      if(!quotes||quotes.upAsk===null||quotes.downAsk===null){
+        try{
+          const book=await getJson(new URL("/v1/markets/"+market.slug+"/book",BASE),ctrl.signal);
+          const best=quotesFromBook(book);
+          if(best.upAsk!==null||best.downAsk!==null)quotes=best;
+          if(!indicative)indicative=lastTradeContext(book);
+        }catch(e){
+          quoteWarning="Order-book prices could not be verified.";
+        }
+      }
+    }
+    // A recent trade is context only. It is never labeled a buy quote.
+    if(!indicative){
+      indicative=lastTradeContext(selected);
+    }
+    if(quotes){
+      quotes.source=quotes.source||"best_bid_offer";
+      quotes.quoteType="executable_reference";
     }
     const warns=[];
     if(market.target===null)warns.push("Opening target has not been published yet.");
     if(market.indexSymbol!=="BRTI")warns.push("Verify the contract's official reference index and resolution rules.");
-    if(!quotes||quotes.upAsk===null||quotes.downAsk===null)warns.push("Best available prices could not be verified.");
+    if(!quotes||quotes.upAsk===null||quotes.downAsk===null)warns.push("There is no verified current buy quote. Last trade, if shown, is not an offer.");
     if(quoteWarning)warns.push(quoteWarning);
     return res.status(200).json({
-      available:true,interval:timeframe,market,quotes,warnings:warns,
+      available:true,interval:timeframe,market,quotes,indicative,warnings:warns,
       currentReferencePrice:null,
       referencePriceStatus:"Not connected: BRTI live index values are not available in Bender yet.",
       chartComparisonAllowed:false,checkedAt:new Date().toISOString()

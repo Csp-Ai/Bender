@@ -72,4 +72,26 @@ function quotesFromBbo(data){
     quoteTime:new Date().toISOString()
   };
 }
-module.exports={TYPE,HORIZONS,finitePrice,dollars,timestamp,intervalOf,isBTCUpDown,selectMarket,normalizeMarket,quotesFromBbo};
+
+function quotesFromBook(data){
+  const b=data&&typeof data==="object"?(data.marketData||data):{};
+  const bids=Array.isArray(b.bids)?b.bids:[];
+  const asks=Array.isArray(b.offers)?b.offers:Array.isArray(b.asks)?b.asks:[];
+  const pick=p=>finitePrice(p?.price??p?.limitPrice??p?.px??p);
+  const bidPrices=bids.map(pick).filter(x=>x!==null),askPrices=asks.map(pick).filter(x=>x!==null);
+  const bid=bidPrices.length?Math.max(...bidPrices):null;
+  const ask=askPrices.length?Math.min(...askPrices):null;
+  const open=!b.state||b.state==="MARKET_STATE_OPEN";
+  return {upAsk:open?ask:null,
+    downAsk:open&&bid!==null?Math.round((1-bid)*10000)/10000:null,
+    bid:open?bid:null,ask:open?ask:null,open,
+    source:"order_book",quoteTime:new Date().toISOString()};
+}
+function lastTradeContext(data){
+  const b=data&&typeof data==="object"?(data.marketData||data):{};
+  const last=finitePrice(b.lastTradePx);
+  return last===null?null:{upLast:last,downLast:Math.round((1-last)*10000)/10000,
+    source:"last_trade",isExecutable:false};
+}
+
+module.exports={quotesFromBook,lastTradeContext,TYPE,HORIZONS,finitePrice,dollars,timestamp,intervalOf,isBTCUpDown,selectMarket,normalizeMarket,quotesFromBbo};
