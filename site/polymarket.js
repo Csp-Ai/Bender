@@ -82,12 +82,13 @@
     const q=d.quotes||{};
     $("poly-up").textContent=cents(q.upAsk);
     $("poly-down").textContent=cents(q.downAsk);
-    latestQuoteAt=Date.now();
-    $("poly-feed-tag").textContent="LIVE CONTRACT";
+    const quoteAvailable=Number.isFinite(q.upAsk)&&Number.isFinite(q.downAsk);
+    latestQuoteAt=quoteAvailable?Date.now():0;
+    $("poly-feed-tag").textContent=quoteAvailable?"CONTRACT + QUOTES":"CONTRACT ONLY";
     $("poly-source-label").textContent="Polymarket US contract + buy quotes";
     $("poly-read").textContent="UP wins if the final minute BRTI average is at least the opening minute average. DOWN wins if it is lower.";
     const warnings=(d.warnings||[]).filter(x=>!x.includes("Live BRTI")).join(" ");
-    $("poly-disclosure").textContent="Buy prices are quotes, not Bender's win probabilities. "+
+    $("poly-disclosure").textContent=(quoteAvailable?"Buy prices are live indicative quotes, not Bender\'s win probabilities. ":"Quote prices are unavailable; confirm in the official app. ")+
       "The official BRTI target can differ from Kraken spot. "+warnings;
     tick();
   }

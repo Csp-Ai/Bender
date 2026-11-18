@@ -127,7 +127,7 @@
     $("bias-explain").textContent="Chart trend only";
     $("quick-status").textContent=state.source==="demo"?"Fake practice data":state.symbol==="SPY"?"SPY chart":"BTC spot chart";
     $("score").textContent=(a.score>0?"+":"")+a.score;$("score").className="stat-value "+dirClass(a.score);
-    $("score-explain").textContent="Out of 8 checks · not winning odds";
+    $("score-explain").textContent="-8 to +8, not win odds";
     $("price").textContent=fmt(a.last.c);
     $("price-explain").textContent="Candle at "+new Date(a.last.t*1000).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})+" local";
     $("chart-pair").textContent=state.source==="demo"?"PRACTICE · "+state.symbol:state.symbol.replace("/"," / ");
