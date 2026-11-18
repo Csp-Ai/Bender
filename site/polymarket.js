@@ -1,97 +1,130 @@
 "use strict";
 (function(){
-  const $=id=>document.getElementById(id);
-  const panel=$("poly-panel");
+  const $=id=>document.getElementById(id),panel=$("poly-panel");
   if(!panel)return;
-  let generation=0,ctrl=null,next=null,activeEnd=null,lastGoodAt=0;
-  const fmt=x=>typeof x==="number"&&Number.isFinite(x)?"$"+x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):"Not available";
-  const cents=x=>typeof x==="number"&&Number.isFinite(x)?(x*100).toFixed(x*100%1?1:0)+"¢":"Not available";
-  const ends=x=>new Date(x).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",timeZoneName:"short"});
-  function note(message){
-    $("poly-message").hidden=false;$("poly-message").textContent=message;
-    $("poly-fields").hidden=true;
+  let generation=0,controller=null,activeEnd=null,latestQuoteAt=0,refController=null;
+  const fmt=x=>Number.isFinite(x)?"$"+x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):"Not available";
+  const cents=x=>Number.isFinite(x)?(x*100).toFixed((x*100)%1?1:0)+"¢":"Not available";
+  function note(text){$("poly-message").hidden=false;$("poly-message").textContent=text;$("poly-fields").hidden=true;}
+  function resetReference(text){
+    $("brti-price").textContent="Not connected";
+    $("brti-delta").textContent="Not available";
+    $("brti-delta").className="";
+    $("brti-status").textContent=text||"Official BRTI data access is not connected.";
   }
-  function choose(){
-    const spy=$("pair").value==="SPY";
-    const practice=$("source").value==="demo";
-    panel.hidden=spy;
-    if(spy)return false;
-    if(practice){
-      panel.hidden=false;note("Practice mode is on. Live contract details are paused so fake chart data never looks like a live recommendation.");
-      $("poly-feed-tag").textContent="PRACTICE";return false;
-    }
+  function reset(){
+    activeEnd=null;latestQuoteAt=0;
+    $("poly-target").textContent="Not available";$("poly-countdown").textContent="--:--";
+    $("poly-up").textContent="Not available";$("poly-down").textContent="Not available";
+    $("poly-market-link").href="https://polymarket.us/category/btc";
+    $("poly-feed-tag").textContent="Checking market...";
+    $("poly-source-label").textContent="Source: Polymarket US";
+    resetReference();
+  }
+  function applicable(){
+    panel.hidden=$("pair").value==="SPY";
+    if(panel.hidden)return false;
+    if($("source").value==="demo"){note("Practice mode is on. Live contract quotes are hidden so fake chart prices are never confused with a real trade.");$("poly-feed-tag").textContent="PRACTICE";return false;}
     return true;
   }
-  function clear(){
-    activeEnd=null;
-    $("poly-target").textContent="Not available";
-    $("poly-countdown").textContent="--:--";
-    $("poly-up").textContent="Not available";
-    $("poly-down").textContent="Not available";
-    $("poly-feed-tag").textContent="Checking market...";
-    $("poly-market-link").href="https://polymarket.us/category/btc";
-    $("poly-source-label").textContent="Source: Polymarket US public market data";
-  }
-  function countdown(){
+  function tick(){
     if(!activeEnd)return;
-    const left=Math.max(0,Math.ceil((activeEnd-Date.now())/1000));
-    $("poly-countdown").textContent=String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0");
-    if(left===0){$("poly-feed-tag").textContent="WINDOW ENDED";$("poly-read").textContent="This window has ended. Wait for the next verified contract. Don't use old quotes.";lastGoodAt=0;}
+    const remaining=Math.max(0,Math.ceil((activeEnd-Date.now())/1000));
+    $("poly-countdown").textContent=String(Math.floor(remaining/60)).padStart(2,"0")+":"+String(remaining%60).padStart(2,"0");
+    if(remaining===0){
+      $("poly-feed-tag").textContent="CONTRACT ENDED";
+      $("poly-up").textContent="Expired";$("poly-down").textContent="Expired";
+      $("brti-delta").textContent="Expired";
+      $("poly-read").textContent="This window ended. The next verified contract will load shortly.";
+    }else if(latestQuoteAt&&Date.now()-latestQuoteAt>30000){
+      $("poly-up").textContent="Quote stale";$("poly-down").textContent="Quote stale";
+      $("poly-feed-tag").textContent="QUOTE STALE";
+    }
   }
-  function display(d){
-    const m=d.market;
-    activeEnd=Date.parse(m.endsAt);
-    if(!Number.isFinite(activeEnd)||activeEnd<=Date.now()){note("That contract has already ended. Checking the next window.");return;}
-    $("poly-message").hidden=true;
-    $("poly-fields").hidden=false;
-    $("poly-market-name").textContent="BTC Up or Down";
-    $("poly-window").textContent=d.interval+" MIN";
+  async function reference(seq,market){
+    if(refController)refController.abort();
+    resetReference("Checking official BRTI access...");
+    if(market.indexSymbol!=="BRTI"||market.target===null){
+      resetReference("Cannot compare without a verified BRTI target.");return;
+    }
+    const rc=new AbortController();refController=rc;
+    try{
+      const timer=setTimeout(()=>rc.abort(),9000);
+      let response;
+      try{response=await fetch("/api/reference",{signal:rc.signal,cache:"no-store"});}
+      finally{clearTimeout(timer);}
+      const j=await response.json();
+      if(seq!==generation||!response.ok)return;
+      if(!j.available){
+        resetReference(j.message||"Official BRTI data is not connected.");return;
+      }
+      const time=Date.parse(j.observedAt),price=Number(j.price),target=market.target;
+      if(!Number.isFinite(time)||Date.now()-time>15000||time>Date.now()+3000||!Number.isFinite(price)||price<=0){
+        resetReference("Index reading is stale or invalid.");return;
+      }
+      const delta=price-target;
+      $("brti-price").textContent=fmt(price);
+      $("brti-delta").textContent=(delta>=0?"+":"-")+fmt(Math.abs(delta));
+      $("brti-delta").className=delta>=0?"positive":"negative";
+      $("brti-status").textContent="Instant BRTI reading, observed "+new Date(time).toLocaleTimeString()+
+        ". Not the final 60-second settlement average.";
+    }catch(e){if(seq===generation)resetReference("Official BRTI reading could not be verified.");}
+  }
+  function show(d){
+    const m=d.market,ends=Date.parse(m.endsAt);
+    if(!Number.isFinite(ends)||ends<=Date.now()){note("This window ended. Checking for a new one.");reset();return;}
+    activeEnd=ends;
+    $("poly-message").hidden=true;$("poly-fields").hidden=false;
+    $("poly-market-name").textContent="BTC Up or Down";$("poly-window").textContent=d.interval+" MIN";
     $("poly-target").textContent=fmt(m.target);
-    $("poly-closes").textContent="Closes at "+ends(m.endsAt);
+    $("poly-closes").textContent="Ends "+new Date(ends).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
     $("poly-market-link").href=m.url;
     const q=d.quotes||{};
     $("poly-up").textContent=cents(q.upAsk);
     $("poly-down").textContent=cents(q.downAsk);
-    $("poly-feed-tag").textContent="CONTRACT FOUND";
-    const rule=m.indexSymbol==="BRTI"?"CF Benchmarks BRTI":"the index listed in its official rules";
-    $("poly-source-label").textContent="Source: Polymarket US market and order-book API";
-    $("poly-read").textContent="Here's the deal: UP wins if the closing "+rule+" average is at least the opening reference. DOWN wins if it is lower. The clock and target come from the contract, not Bender's Kraken chart.";
-    const warn=(d.warnings||[]).join(" ");
-    $("poly-disclosure").textContent=
-      "Live BRTI price is NOT connected, so Bender cannot verify how far BTC is above or below the official target. "+
-      "Prices here are quotes, not Bender win odds. Check the actual contract, fees and available prices before any trade. "+warn;
-    countdown();
-    lastGoodAt=Date.now();
+    latestQuoteAt=Date.now();
+    $("poly-feed-tag").textContent="LIVE CONTRACT";
+    $("poly-source-label").textContent="Polymarket US contract + buy quotes";
+    $("poly-read").textContent="UP wins if the final minute BRTI average is at least the opening minute average. DOWN wins if it is lower.";
+    const warnings=(d.warnings||[]).filter(x=>!x.includes("Live BRTI")).join(" ");
+    $("poly-disclosure").textContent="Buy prices are quotes, not Bender's win probabilities. "+
+      "The official BRTI target can differ from Kraken spot. "+warnings;
+    tick();
   }
-  async function refresh(){
+  async function refresh(resetUI=false){
     const seq=++generation;
-    if(ctrl)ctrl.abort();
-    clear();
-    if(!choose())return;
-    const interval=Number($("interval").value);
-    note("Looking for a verified BTC "+interval+"-minute Polymarket US contract...");
-    ctrl=new AbortController();
+    if(controller)controller.abort();
+    if(refController)refController.abort();
+    if(!applicable()){reset();return;}
+    if(resetUI||!activeEnd){reset();note("Looking for the current BTC contract...");}
+    controller=new AbortController();
     try{
-      const t=setTimeout(()=>ctrl.abort(),12000);
+      const timer=setTimeout(()=>controller.abort(),11000);
       let response;
-      try{response=await fetch("/api/polymarket?interval="+interval,{signal:ctrl.signal,cache:"no-store"});}
-      finally{clearTimeout(t);}
-      const d=await response.json();
+      try{response=await fetch("/api/polymarket?interval="+Number($("interval").value),{signal:controller.signal,cache:"no-store"});}
+      finally{clearTimeout(timer);}
+      const data=await response.json();
       if(seq!==generation)return;
-      if(!response.ok)throw new Error(d.error||"The contract feed is unavailable");
-      if(!d.available){note(d.reason||"No live contract verified yet. Check Polymarket US.");$("poly-feed-tag").textContent="NOT VERIFIED";return;}
-      display(d);
+      if(!response.ok)throw new Error("Feed unavailable");
+      if(!data.available){
+        reset();note(data.reason||"No verified live BTC contract. Check the official app.");
+        $("poly-feed-tag").textContent="NOT VERIFIED";return;
+      }
+      show(data);
+      reference(seq,data.market);
     }catch(e){
       if(seq!==generation)return;
-      note("Can't verify this contract right now. Check Polymarket US directly. No odds or target will be guessed.");
-      $("poly-feed-tag").textContent="FEED UNAVAILABLE";
+      $("poly-feed-tag").textContent="FEED OFFLINE";
+      $("poly-up").textContent="Unavailable";$("poly-down").textContent="Unavailable";
+      latestQuoteAt=0;
+      if(!activeEnd)note("Could not verify a live contract. Check Polymarket US.");
+      resetReference("Official reference cannot be verified while the contract feed is offline.");
     }
   }
-  ["pair","interval","source"].forEach(id=>$(id).addEventListener("change",refresh));
-  $("refresh").addEventListener("click",refresh);
-  window.addEventListener("pageshow",()=>{if(document.visibilityState==="visible")refresh();});
-  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh();});
-  setInterval(()=>{if(document.visibilityState==="visible"&&choose())refresh();},15000);
-  setInterval(countdown,1000);
-  refresh();
+  ["pair","interval","source"].forEach(id=>$(id).addEventListener("change",()=>refresh(true)));
+  $("refresh").addEventListener("click",()=>refresh(false));
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh(true);});
+  setInterval(()=>{if(document.visibilityState==="visible"&&applicable())refresh(false);},15000);
+  setInterval(tick,1000);
+  refresh(true);
 })();
