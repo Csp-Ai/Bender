@@ -50,3 +50,16 @@
 - [ ] Verify actual index readings and contract matching end-to-end once authorized
 - [ ] Develop robust exact 60-second opening/closing window aggregation, not a single-tick substitute
 - [ ] Record prior signals and resolved contract outcomes; backtest before probability estimates
+
+## v0.7 usability pass
+- [x] Remove duplicate DOM chart-summary IDs
+- [x] Add live Kraken BTC ticker with public Coinbase spot fallback
+- [x] Display spot-vs-BRTI-target comparison as an explicitly approximate difference
+- [x] Recheck BTC spot every five seconds while the page is active
+- [x] Add read-only best bid/ask, book and last-trade context tiers with distinct labels
+- [x] Link exact verified event via HTTPS for mobile app handoff where supported
+- [x] Add public Yahoo Finance 5m/15m SPY feed with optional Alpaca fallback
+- [ ] Confirm app-link routing on Omar's exact device and browser
+- [ ] Verify stock-feed reliability at market open and during the trading session
+- [ ] Validate quote spread, staleness and displayed order prices in live market snapshots
+- [ ] Paper-track model outputs vs resolved contracts before interpreting the trend score as a trading edge

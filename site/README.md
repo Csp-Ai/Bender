@@ -50,3 +50,15 @@ BRTI_DATA_LICENSE_CONFIRMED=true
 Do not add credentials to GitHub or paste them in chat. Unauthorized or stale feeds fail closed. The backend uses the documented CF Benchmarks GET `/api/v1/latest_values?id=BRTI` endpoint with Basic authentication, and verifies a reading is at most 15 seconds old.
 
 BRTI parsing tests are in `site/tests/brti.test.cjs`. Run with `node --test site/tests/*.test.cjs` from the repo root. The public Polymarket contract price and live BRTI index have different sources and update rates.
+
+## v0.7: usable spot estimate and mobile Polymarket handoff
+
+BTC now displays a recently fetched spot price from Kraken's public ticker, with Coinbase spot as a backup. A 5-second foreground timer updates it. The displayed difference against Polymarket's official contract target is expressly an **estimate using a different pricing source**. It is not a BRTI settlement reading, not a prediction, and not a substitute for the minute-average contract rule. If a licensed BRTI feed becomes available, it takes priority.
+
+Contract lookup refreshes every 15 seconds. Buy prices use the verified best bid/ask endpoint, then the full order book. If no executable quote is present, a last-trade reference may be shown but must be labeled **not a buy quote**. Missing executable quotes must never be fabricated.
+
+The active event link uses the verified `https://polymarket.us/event/<market-slug>` URL. On mobile, the OS may open the installed US app when it claims that link; otherwise the same official event opens in the browser. No undocumented app-specific URL scheme is assumed.
+
+SPY uses public Yahoo Finance chart data for 5-minute and 15-minute completed candles, with Alpaca IEX as an optional fallback. This can be delayed or rate-limited; it should not be described as guaranteed real-time exchange data. The SPY chart is not linked to an SPY Polymarket contract.
+
+The earlier duplicate chart summary was removed, preserving exactly one source of truth for the visible score and last-candle display.

@@ -23,3 +23,11 @@ The BTC 5m/15m contract tracker uses read-only Polymarket US REST market metadat
 One job per section: market selection, live Polymarket US contract details, a single chart quick read, the price chart, optional expanded indicator explanations, and an official contract handoff. On mobile the intro and contract cards are condensed. Technical notes are available but not repeated. The rule score is directional agreement, not odds.
 
 An official CF Benchmarks BRTI latest-value provider is implemented behind explicit authorization and licensing checks, but inactive without configured credentials. Its latest instant value may be compared to the market's official opening target only if fresh. That instantaneous comparison is *not* the settlement calculation, which uses time-window averages. Do not imply a final outcome or expected value without reliable historical calibration.
+
+## v0.7 live fallback policy
+
+Usability must not come from fabricated prices. Bender may compare a fresh Kraken/Coinbase BTC spot quote with an actual Polymarket US opening BRTI target, but labels the difference as an *approximation across different feeds*. The target and official settlement remain BRTI minute averages, and spot can differ meaningfully.
+
+The contract page prefers actual quoted best offers, tries full depth as fallback, and only displays last-traded prices with a clearly stated non-executable disclaimer. This keeps the market screen useful when the order book is thin without claiming a trade price. A direct HTTPS Polymarket US event link may open the installed mobile app if the platform registers it, with the web event as fallback.
+
+SPY's market data source is independent of BTC and can be delayed. Neither 5m nor 15m SPY chart timeframes imply the existence of matching Polymarket contracts. No account, wallet or trading execution connection is made.
