@@ -1,13 +1,64 @@
 "use strict";
 (function () {
   const $ = id => document.getElementById(id);
-  const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1, requestId:0, controller:null};
+  const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1, requestId:0, controller:null, lastCheckedAt:0, lastClosedAt:0, feedName:""};
   const colors = {up:"#51dbac",down:"#ff7182",ema9:"#75B9FF",ema20:"#E5C478",ema50:"#D0E8FF"};
   const fmt = v => Number.isFinite(v) ? "$" + new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "-";
   const shortTime = s => new Date(s * 1000).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   const dirName = d => d > 0 ? "UP" : d < 0 ? "DOWN" : "MIXED";
   const readableBias = bias => bias==="BULLISH"?"LEANING UP":bias==="BEARISH"?"LEANING DOWN":"MIXED SIGNALS";
   const dirClass = d => d > 0 ? "bull" : d < 0 ? "bear" : "neutral";
+  const timeUtil = window.BenderCandleTime;
+  if(!timeUtil||typeof timeUtil.assess!=="function")throw new Error("Candle freshness checks did not load");
+  const localTime = timestamp => new Date(timestamp).toLocaleString(undefined,{
+    month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"
+  });
+  function freshness(){
+    if(!state.analysis||!state.data.length)return null;
+    return timeUtil.assess(state.analysis.last.t,state.interval,Date.now(),state.symbol==="SPY");
+  }
+  function updateFreshness(){
+    const a=state.analysis,live=state.source==="live";
+    if(!a)return;
+    const f=freshness(),invalid=!f||f.status==="INVALID"||f.status==="FUTURE";
+    const ready=live&&!invalid&&f.status==="FRESH";
+    const isDemo=!live;
+    const closed=f?.status==="MARKET_CLOSED";
+    const stale=live&&(f?.status==="DELAYED"||invalid);
+    const quick=document.querySelector(".quick-read");
+    if(quick)quick.classList.toggle("is-delayed",stale);
+    const label=$("quick-status");
+    label.classList.toggle("is-delayed",stale);
+    label.classList.toggle("is-fresh",ready);
+    label.classList.toggle("is-closed",closed);
+    let status="CHECKING";
+    if(isDemo)status="PRACTICE DATA";
+    else if(closed)status="STOCK MARKET CLOSED";
+    else if(stale)status="CHART DELAYED";
+    else if(ready)status="LATEST CLOSED CANDLE";
+    label.textContent=status;
+    const closeLabel=f?.closeMs?localTime(f.closeMs):"Unknown";
+    $("price-explain").textContent="Closed "+closeLabel+(closed?" | Last stock session":stale?" | Not current":"");
+    if(ready||isDemo){
+      $("bias").textContent=readableBias(a.bias);
+      $("bias").className="stat-value "+dirClass(a.score);
+      $("score").textContent=(a.score>0?"+":"")+a.score;
+      $("score").className="stat-value "+dirClass(a.score);
+    } else {
+      $("bias").textContent=closed?"SESSION ENDED":"CHECKING";
+      $("bias").className="stat-value muted";
+      $("score").textContent="-";
+      $("score").className="stat-value muted";
+    }
+    const explanation=$("quick-text");
+    if(isDemo) explanation.textContent="Practice only. These candles are simulated and cannot support a real trade.";
+    else if(closed) explanation.textContent="SPY's regular trading session is closed. This is the latest available historical chart, not a live signal.";
+    else if(stale) explanation.textContent="The latest completed candle is behind the expected close time. Bender is refreshing the chart. Don't use an older trend score for a short-term contract.";
+    else {
+      const lead=a.bias==="BULLISH"?"Buyers have momentum in the recent completed candles.":a.bias==="BEARISH"?"Sellers have momentum in the recent completed candles.":"The finished candles show a mixed trend.";
+      explanation.textContent=lead+" Last candle closed "+localTime(f.closeMs)+". This is chart direction, not a BRTI settlement forecast.";
+    }
+  }
 
   function emaSeries(values, span) {
     let last = values[0];
@@ -54,9 +105,10 @@
     const score=votes.reduce((n,v)=>n+v.dir,0);
     const bias=score>=4?"BULLISH":score<=-4?"BEARISH":"NEUTRAL";
     const warnings=[];
-    const age=Date.now()/1000-last.t;
-    if (age>state.interval*60*3) warnings.push("Latest completed candle is stale. Verify the market feed before acting.");
-    if (age<0) warnings.push("A future-dated candle was received.");
+    const time=timeUtil.assess(last.t,state.interval,Date.now(),state.symbol==="SPY");
+    const age=time.ageMs/1000;
+    if (time.status==="DELAYED") warnings.push("Completed candle data is behind the expected close time.");
+    if (time.status==="FUTURE"||time.status==="INVALID") warnings.push("Candle timestamps could not be verified.");
     if (rows.slice(-20).some(x=>x.v===0)) warnings.push("Zero-volume candles can distort indicator readings.");
     if (state.source==="demo") warnings.push("Simulated candles: not real prices, not actionable signals.");
     return {score,bias,votes,support,resistance,rsi,e9,e20,e50,age,warnings,last};
@@ -81,7 +133,8 @@
     if(state.controller)state.controller.abort();
     state.symbol=$("pair").value;state.interval=Number($("interval").value);state.source=$("source").value;
     state.loading=true;
-    $("refresh").disabled=true;$("refresh").textContent="Checking…";
+    if(state.analysis)updateFreshness();
+    $("refresh").disabled=true;$("refresh").textContent="Checking...";
     $("error").hidden=true;
     $("demoBanner").hidden=state.source!=="demo";
     $("data-status").textContent="UPDATING";
@@ -96,7 +149,8 @@
           const response=await fetch(url,{signal:controller.signal,cache:"no-store"});
           const json=await response.json();
           if(!response.ok)throw new Error(json.error||"Market feed unavailable");
-          rows=json.candles;feedName=state.symbol==="SPY"?"Alpaca · IEX-only ETF bars":"Kraken · BTC spot candles";
+          rows=json.candles;
+          feedName=json.source==="YAHOO_FINANCE"?"Yahoo Finance SPY candles":json.source==="ALPACA_IEX"?"Alpaca IEX SPY candles":"Kraken BTC spot candles";
         }finally{clearTimeout(timeout);}
       }
       if(requestId!==state.requestId)return;
@@ -105,16 +159,26 @@
       if(rows.some((r,i)=>i>0&&r.t<=rows[i-1].t))throw new Error("Candle timestamps are out of order");
       state.analysis=analyze(rows);
       state.data=rows;
+      state.feedName=feedName;
+      state.lastClosedAt=(state.analysis.last.t+state.interval*60)*1000;
+      state.lastCheckedAt=Date.now();
       state.hover=-1;
       render();
-      $("data-status").textContent=state.source==="demo"?"PRACTICE MODE":state.symbol==="SPY"?"SPY / IEX BARS":"BTC / KRAKEN BARS";
-      $("updated").textContent="Analyzed " + new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}) + " local";
+      const info=freshness();
+      $("data-status").textContent=state.source==="demo"?"PRACTICE MODE":info?.status==="MARKET_CLOSED"?"SPY / MARKET CLOSED":info?.status==="DELAYED"?"CHART DELAYED":state.symbol==="SPY"?"SPY / STOCK CHART":"BTC / KRAKEN CHART";
+      $("updated").textContent="Last checked "+new Date(state.lastCheckedAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+" | "+feedName;
       if(!isAuto)document.title=readableBias(state.analysis.bias)+" | Bender";
     }catch(e){
       if(requestId!==state.requestId)return;
       $("data-status").textContent=state.symbol==="SPY"?"SPY FEED UNAVAILABLE":"PRICE FEED UNAVAILABLE";
-      $("quick-status").textContent="Feed unavailable";
-      $("quick-text").textContent=state.symbol==="SPY"?"SPY needs its stock-data feed connected before Bender can read the chart.":"No fresh chart read available. Confirm the live market in Polymarket US.";
+      $("quick-status").textContent="FEED UNAVAILABLE";
+      if(state.analysis){
+        state.analysis=null;state.data=[];state.lastClosedAt=0;
+        $("bias").textContent="-";$("bias").className="stat-value muted";
+        $("score").textContent="-";$("score").className="stat-value muted";
+        $("price").textContent="-";$("price-explain").textContent="No verified current candle";
+      }
+      $("quick-text").textContent="The chart feed did not return a verified update. Bender has hidden the previous signal so it cannot look current.";
       $("error").textContent="Can’t check this chart right now: "+e.message+" Try again, or use Practice (Fake) to explore the layout.";
       $("error").hidden=false;
     }finally{
@@ -129,10 +193,10 @@
     $("score").textContent=(a.score>0?"+":"")+a.score;$("score").className="stat-value "+dirClass(a.score);
     $("score-explain").textContent="-8 to +8, not win odds";
     $("price").textContent=fmt(a.last.c);
-    $("price-explain").textContent="Candle at "+new Date(a.last.t*1000).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})+" local";
+    $("price-explain").textContent="Closed "+localTime(state.lastClosedAt);
     $("chart-pair").textContent=state.source==="demo"?"PRACTICE · "+state.symbol:state.symbol.replace("/"," / ");
     $("chart-interval").textContent=state.interval+"m";
-    $("chart-subtitle").textContent=(state.source==="demo"?"Made-up data":state.symbol==="SPY"?"SPY · Alpaca IEX-only market data":"BTC · Kraken spot prices")+" · "+rows.length+" finished candles";
+    $("chart-subtitle").textContent=state.feedName+" | "+rows.length+" finished candles";
     $("support").textContent=fmt(a.support);
     $("resistance").textContent=fmt(a.resistance);
     $("rsi").textContent=a.rsi.toFixed(1);
@@ -158,10 +222,7 @@
       const tag=document.createElement("span");tag.className="factor-tag "+dirClass(v.dir);tag.textContent=dirName(v.dir);
       row.append(left,tag);votes.appendChild(row);
     });
-    const lead=a.bias==="BULLISH"?"Buyers have the momentum on this chart.":a.bias==="BEARISH"?"Sellers have the momentum on this chart.":"The chart is giving mixed signals.";
-    const stale=a.warnings.some(w=>/stale|future-dated/i.test(w));
-    if(stale){$("quick-status").textContent="STALE CHART DATA";$("quick-text").textContent="The latest finished candle is stale or invalid. Don't use this chart lean for a time-sensitive contract.";}
-    else $("quick-text").textContent=lead+" It uses finished candles, not the official BRTI settlement average. A strong chart lean doesn't prove the contract is fairly priced.";
+    updateFreshness();
     const warnings=$("warnings");warnings.replaceChildren();
     a.warnings.forEach(w=>{const div=document.createElement("div");div.className="warning";div.textContent=w;warnings.appendChild(div);});
     if(a.warnings.length===0){warnings.replaceChildren();}
@@ -241,12 +302,12 @@
     $("polymarket-link").href=spy?"https://polymarket.us/":"https://polymarket.us/category/btc";
   }
   function clearPriorRead() {
-    state.analysis=null;state.data=[];state.chartMeta=null;
+    state.analysis=null;state.data=[];state.chartMeta=null;state.lastClosedAt=0;state.lastCheckedAt=0;
     $("bias").textContent="-";$("bias").className="stat-value muted";
     $("quick-status").textContent="Checking chart...";
     $("quick-text").textContent="Waiting for finished price candles to calculate the chart trend.";
     $("score").textContent="-";$("score").className="stat-value muted";
-    $("price").textContent="-";$("chart-pair").textContent=$("pair").value;
+    $("price").textContent="-";$("price-explain").textContent="Checking candle close time";$("chart-pair").textContent=$("pair").value;
     $("chart-subtitle").textContent="Checking the selected market…";
     $("support").textContent="-";$("resistance").textContent="-";$("rsi").textContent="-";
     $("votes").replaceChildren();$("brief").replaceChildren();$("warnings").replaceChildren();
@@ -258,6 +319,17 @@
   $("refresh").addEventListener("click",()=>load(false));
   ["pair","interval","source"].forEach(id=>$(id).addEventListener("change",()=>{clearPriorRead();describeMarket();load(false);}));
   window.addEventListener("resize",draw);
-  setInterval(()=>{if(document.visibilityState==="visible"&&$("source").value==="live")load(true);},45000);
+  // Check on a short cadence, particularly just after 5m/15m boundaries.
+  // The server provides finished candles and never serves cached chart snapshots.
+  setInterval(()=>{
+    if(document.visibilityState==="visible"&&$("source").value==="live")load(true);
+  },15000);
+  setInterval(updateFreshness,1000);
+  const refreshOnReturn=()=>{
+    if(document.visibilityState==="visible"&&$("source").value==="live")load(false);
+  };
+  document.addEventListener("visibilitychange",refreshOnReturn);
+  window.addEventListener("pageshow",refreshOnReturn);
+  window.addEventListener("focus",refreshOnReturn);
   describeMarket();load(false);
 })();
