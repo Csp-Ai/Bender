@@ -39,3 +39,11 @@ test("missing or closed quotes never fabricate odds",()=>{
 test("horizon matching is strict",()=>{
   assert.equal(intervalOf("5m"),5);assert.equal(intervalOf("15m"),15);assert.equal(intervalOf("1h"),null);
 });
+
+test("normalizes rolling BTC routes to durable official category pages",()=>{
+  const five=normalizeMarket(sample());
+  assert.equal(five.url,"https://polymarket.us/category/bitcoin-5m");
+  const fifteen=normalizeMarket(sample("15m"));
+  assert.equal(fifteen.url,"https://polymarket.us/category/bitcoin-15m");
+  assert.ok(!five.url.includes("/event/"));
+});

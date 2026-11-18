@@ -41,12 +41,13 @@ function selectMarket(markets,interval,now){
 function normalizeMarket(m){
   const t=m.assetPriceTerms||{};
   const slug=String(m.slug||"");
-  const eventSlug=String(m.eventSlug||m.event?.slug||m.events?.[0]?.slug||slug);
-  const safeSlug=/^[a-z0-9-]{5,180}$/.test(eventSlug)?eventSlug:"";
   const index=String(t.indexSymbol||"").slice(0,32);
+  const horizon=intervalOf(t.horizon);
+  const landing=horizon===15?"https://polymarket.us/category/bitcoin-15m":
+    horizon===5?"https://polymarket.us/category/bitcoin-5m":"https://polymarket.us/category/btc";
   return {
     id:String(m.id||""),slug,
-    url:safeSlug?"https://polymarket.us/event/"+safeSlug:"https://polymarket.us/category/btc",
+    url:landing,
     title:String(m.question||m.titleShort||"BTC Up or Down").slice(0,140),
     startsAt:new Date(timestamp(t.windowStart)).toISOString(),
     endsAt:new Date(timestamp(t.windowEnd)).toISOString(),

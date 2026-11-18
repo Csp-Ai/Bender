@@ -62,3 +62,11 @@ The active event link uses the verified `https://polymarket.us/event/<market-slu
 SPY uses public Yahoo Finance chart data for 5-minute and 15-minute completed candles, with Alpaca IEX as an optional fallback. This can be delayed or rate-limited; it should not be described as guaranteed real-time exchange data. The SPY chart is not linked to an SPY Polymarket contract.
 
 The earlier duplicate chart summary was removed, preserving exactly one source of truth for the visible score and last-candle display.
+
+## v0.7.1: mobile app handoff fix
+
+The mobile screenshot showed Polymarket opening an individual five-minute event that had already expired or was not recognized by the app. The handoff now uses the verified, ongoing Polymarket US categories:
+- BTC 5m: https://polymarket.us/category/bitcoin-5m
+- BTC 15m: https://polymarket.us/category/bitcoin-15m
+
+The page picks the correct destination as soon as the timeframe changes, even while contract data is still fetching. On iOS/Android, the official HTTPS link can open the installed Polymarket app if its universal-link rules support it. Otherwise, the official market webpage loads. A separate homepage fallback is provided. The per-contract API metadata remains in Bender for analysis, but no expiring event URL is used as the primary handoff.

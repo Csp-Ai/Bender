@@ -42,7 +42,7 @@ module.exports=async function handler(req,res){
     if(!selected){
       return res.status(200).json({available:false,interval:timeframe,source:"Polymarket US",
         reason:"No verified active BTC "+timeframe+"-minute Up/Down contract found in the public market feed.",
-        categoryUrl:"https://polymarket.us/category/btc",checked,checkedAt:new Date().toISOString()});
+        categoryUrl:timeframe===15?"https://polymarket.us/category/bitcoin-15m":"https://polymarket.us/category/bitcoin-5m",checked,checkedAt:new Date().toISOString()});
     }
     const market=normalizeMarket(selected);
     let quotes=null,quoteWarning=null,indicative=null;

@@ -2,21 +2,26 @@
 (function(){
   const $=id=>document.getElementById(id);
   if(!$("poly-panel"))return;
-  const HOME="https://polymarket.us/category/btc";
+  const HOME="https://polymarket.us/";
+  const LIVE_BTC_5M="https://polymarket.us/category/bitcoin-5m";
+  const LIVE_BTC_15M="https://polymarket.us/category/bitcoin-15m";
   let seq=0,market=null,request=null,priceRequest=null,quoteAt=0;
   let officialAvailable=false,officialStatusAt=0,priceUpdatedAt=0;
   let refreshAfterExpiry=false;
   const usd=x=>typeof x==="number"&&Number.isFinite(x)?"$"+x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):"Check app";
   const money=x=>Number.isFinite(x)?(x*100).toFixed(Math.abs((x*100)%1)<.01?0:1)+"¢":"Check app";
   const fresh=x=>Number.isFinite(x)&&Date.now()-x<30000;
-  const cleanHref=x=>typeof x==="string"&&/^https:\/\/polymarket\.us\/event\/[a-z0-9-]{5,180}$/.test(x)?x:HOME;
   const active=()=>$("pair").value==="BTC/USD"&&$("source").value==="live"&&document.visibilityState==="visible";
-  function links(url){
-    const final=cleanHref(url);
-    // An HTTPS event link allows iOS/Android to use registered universal/app links.
-    // When the app does not claim the URL, the official web event is the fallback.
+  function links(){
+    const spy=$("pair").value==="SPY";
+    const interval=Number($("interval").value);
+    // Stable official category pages point to the current rolling market.
+    // Per-event URLs may expire before iOS finishes switching into the app.
+    const final=spy?HOME:(interval===15?LIVE_BTC_15M:LIVE_BTC_5M);
     $("poly-market-link").href=final;
     $("polymarket-link").href=final;
+    $("poly-market-link").textContent=spy?"Open Polymarket US":("Open live BTC "+interval+"m in Polymarket");
+    $("polymarket-link").textContent=spy?"Open Polymarket US":("Open live BTC "+interval+"m in Polymarket");
   }
   function referenceReset(text){
     $("reference-label").textContent="LIVE BTC SPOT";
@@ -114,8 +119,8 @@
     $("poly-disclosure").textContent=hasQuote
       ?"Displayed asks are indicative and may change before you place an order. They are not Bender's predicted odds."
       :hasLast
-      ?"Last trade values are only price context. They are not offers you can buy at. Confirm real order prices inside Polymarket."
-      :"No trustworthy order-book quote was published. Use the exact market link to see current buy prices in Polymarket.";
+      ?"Last trade values are only price context. They are not offers you can buy at. Confirm buy prices in the live Polymarket market."
+      :"No trustworthy order-book quote was published. Open the live BTC market in Polymarket to check current buy prices.";
   }
   function noContract(message){
     market=null;quoteAt=0;
@@ -123,7 +128,7 @@
     $("poly-message").textContent=message;
     $("poly-fields").hidden=true;
     $("poly-feed-tag").textContent="CHECKING MARKET";
-    links(HOME);
+    links();
   }
   function showMarket(data){
     const m=data.market||{};
@@ -139,7 +144,7 @@
     $("poly-closes").textContent="Ends "+new Date(end).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
     $("poly-source-label").textContent="Contract + prices: Polymarket US";
     $("poly-read").textContent="Up wins if the final BRTI minute average is at least the opening target. Down wins if it is lower.";
-    links(m.url);
+    links();
     showQuotes(data);
     if(switched){referenceReset();updatePrice();}
     tick();
@@ -171,11 +176,12 @@
     const spotOnly=$("pair").value==="BTC/USD"&&$("source").value==="live";
     $("poly-panel").hidden=$("pair").value==="SPY";
     if(!spotOnly){
-      market=null;links(HOME);
+      market=null;links();
       if($("source").value==="demo"&&$("pair").value==="BTC/USD")
         noContract("Practice mode is on. Real contract information is hidden so practice prices cannot be confused with the market.");
       return;
     }
+    links();
     if(hard||!market)noContract("Finding the current BTC contract...");
     const ctrl=new AbortController();request=ctrl;const timeout=setTimeout(()=>ctrl.abort(),10500);
     try{
@@ -196,5 +202,5 @@
   setInterval(()=>{if(active())refresh(false);},15000);
   setInterval(()=>{if(active())updatePrice();},5000);
   setInterval(tick,1000);
-  links(HOME);refresh(true);
+  links();refresh(true);
 })();
