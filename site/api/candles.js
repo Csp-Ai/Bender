@@ -69,7 +69,7 @@ async function spy(interval,signal) {
   })).filter(r=>{
     if(!completed(r,interval,now))return false;
     const minute=nyMinutes(r.t*1000);
-    return minute>=570&&minute+interval<=960; // Regular NYSE session (09:30–16:00 ET)
+    return minute>=570&&minute+interval<=960; // Regular NYSE session (09:30-16:00 ET)
   }).sort((a,b)=>a.t-b.t);
   const unique=bars.filter((r,i)=>i===0||r.t!==bars[i-1].t);
   return {bars:unique.slice(-720),source:"ALPACA_IEX",
