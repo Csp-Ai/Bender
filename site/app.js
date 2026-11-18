@@ -159,7 +159,9 @@
       row.append(left,tag);votes.appendChild(row);
     });
     const lead=a.bias==="BULLISH"?"Buyers have the momentum on this chart.":a.bias==="BEARISH"?"Sellers have the momentum on this chart.":"The chart is giving mixed signals.";
-    $("quick-text").textContent=lead+" It is based on finished candles, not the official BRTI settlement average. A strong chart lean does not prove the contract is fairly priced.";
+    const stale=a.warnings.some(w=>/stale|future-dated/i.test(w));
+    if(stale){$("quick-status").textContent="STALE CHART DATA";$("quick-text").textContent="The latest finished candle is stale or invalid. Don't use this chart lean for a time-sensitive contract.";}
+    else $("quick-text").textContent=lead+" It uses finished candles, not the official BRTI settlement average. A strong chart lean doesn't prove the contract is fairly priced.";
     const warnings=$("warnings");warnings.replaceChildren();
     a.warnings.forEach(w=>{const div=document.createElement("div");div.className="warning";div.textContent=w;warnings.appendChild(div);});
     if(a.warnings.length===0){warnings.replaceChildren();}
