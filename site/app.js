@@ -234,7 +234,7 @@
     $("contract-note").textContent=spy
       ?"SPY markets may ask about the day’s close or reaching a target by a deadline. Check the exact market and its official price source before considering a trade. A 5-minute SPY chart doesn’t automatically match a 5-minute bet."
       :"Bitcoin may have 5-minute or 15-minute Up/Down markets. Bender helps you read the trend; Polymarket sets its own price to beat and closing time. Check those numbers and the contract price first.";
-    $("polymarket-link").href=spy?"https://polymarket.com/predictions/spy":"https://polymarket.com/crypto/bitcoin/updown";
+    $("polymarket-link").href=spy?"https://polymarket.com/":"https://polymarket.com/crypto/bitcoin/updown";
   }
   function clearPriorRead() {
     state.analysis=null;state.data=[];state.chartMeta=null;
