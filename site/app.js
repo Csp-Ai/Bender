@@ -113,6 +113,8 @@
     }catch(e){
       if(requestId!==state.requestId)return;
       $("data-status").textContent=state.symbol==="SPY"?"SPY FEED UNAVAILABLE":"PRICE FEED UNAVAILABLE";
+      $("quick-status").textContent="Feed unavailable";
+      $("quick-text").textContent=state.symbol==="SPY"?"SPY needs its stock-data feed connected before Bender can read the chart.":"No fresh chart read available. Confirm the live market in Polymarket US.";
       $("error").textContent="Can’t check this chart right now: "+e.message+" Try again, or use Practice (Fake) to explore the layout.";
       $("error").hidden=false;
     }finally{
@@ -122,7 +124,8 @@
   function render(){
     const a=state.analysis,rows=state.data,scoreDirection=Math.sign(a.score);
     $("bias").textContent=readableBias(a.bias);$("bias").className="stat-value "+dirClass(a.score);
-    $("bias-explain").textContent="The chart’s lean, not a bet pick";
+    $("bias-explain").textContent="Chart trend only";
+    $("quick-status").textContent=state.source==="demo"?"Fake practice data":state.symbol==="SPY"?"SPY chart":"BTC spot chart";
     $("score").textContent=(a.score>0?"+":"")+a.score;$("score").className="stat-value "+dirClass(a.score);
     $("score-explain").textContent="Out of 8 checks · not winning odds";
     $("price").textContent=fmt(a.last.c);
@@ -155,15 +158,11 @@
       const tag=document.createElement("span");tag.className="factor-tag "+dirClass(v.dir);tag.textContent=dirName(v.dir);
       row.append(left,tag);votes.appendChild(row);
     });
-    let lead=a.bias==="BULLISH"?"More signals point up than down right now.":a.bias==="BEARISH"?"More signals point down than up right now.":"The signals disagree, so this chart has no strong lean.";
-    let count=a.votes.filter(v=>v.dir===scoreDirection&&v.dir!==0).length;
-    const brief=$("brief");brief.replaceChildren();
-    const p=document.createElement("p");
-    p.textContent=lead+" The score is "+(a.score>0?"+":"")+a.score+" out of ±8. "+(scoreDirection===0?"No single direction stands out.":count+" of the eight checks currently point in the same direction.")+" Price has recently bounced near "+fmt(a.support)+" and run into selling around "+fmt(a.resistance)+". That doesn’t tell us how a specific Polymarket contract will settle.";
-    brief.appendChild(p);
+    const lead=a.bias==="BULLISH"?"Buyers have the momentum on this chart.":a.bias==="BEARISH"?"Sellers have the momentum on this chart.":"The chart is giving mixed signals.";
+    $("quick-text").textContent=lead+" It is based on finished candles, not the official BRTI settlement average. A strong chart lean does not prove the contract is fairly priced.";
     const warnings=$("warnings");warnings.replaceChildren();
     a.warnings.forEach(w=>{const div=document.createElement("div");div.className="warning";div.textContent=w;warnings.appendChild(div);});
-    if(a.warnings.length===0){const div=document.createElement("div");div.className="muted-copy";div.textContent="Data looks recent, but the next candle can still go either way.";warnings.appendChild(div);}
+    if(a.warnings.length===0){warnings.replaceChildren();}
     draw();
   }
   function draw(){
@@ -232,17 +231,18 @@
   }
   function describeMarket() {
     const spy=$("pair").value==="SPY";
-    $("market-note").textContent=spy
-      ?"SPY is a stock ETF, not Bitcoin. It mostly trades during US market hours. Its 5m/15m chart candles do NOT mean Polymarket has matching 5m/15m SPY bets. The SPY feed requires a stock-data connection."
-      :"BTC trades around the clock. These are Kraken chart prices, NOT the special reference price that can settle a Polymarket bet. Check the actual contract.";
+    $("market-note").hidden=!spy;
+    $("market-note").textContent=spy?"SPY is a stock ETF with market hours and different contract rules. Its live chart feed still needs a stock-data connection.":"";
     $("contract-note").textContent=spy
-      ?"SPY markets may ask about the day’s close or reaching a target by a deadline. Check the exact market and its official price source before considering a trade. A 5-minute SPY chart doesn’t automatically match a 5-minute bet."
-      :"Bitcoin may have 5-minute or 15-minute Up/Down markets. Bender helps you read the trend; Polymarket sets its own price to beat and closing time. Check those numbers and the contract price first.";
-    $("polymarket-link").href=spy?"https://polymarket.com/":"https://polymarket.com/crypto/bitcoin/updown";
+      ?"SPY contracts can use different rules and time windows. Check the exact terms in the US app."
+      :"Check the official target, time left, and quotes in Polymarket US. Bender does not place trades.";
+    $("polymarket-link").href=spy?"https://polymarket.us/":"https://polymarket.us/category/btc";
   }
   function clearPriorRead() {
     state.analysis=null;state.data=[];state.chartMeta=null;
     $("bias").textContent="-";$("bias").className="stat-value muted";
+    $("quick-status").textContent="Checking chart...";
+    $("quick-text").textContent="Waiting for finished price candles to calculate the chart trend.";
     $("score").textContent="-";$("score").className="stat-value muted";
     $("price").textContent="-";$("chart-pair").textContent=$("pair").value;
     $("chart-subtitle").textContent="Checking the selected market…";
