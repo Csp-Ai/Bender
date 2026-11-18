@@ -17,3 +17,9 @@
 
 ## Polymarket US BTC proof of concept
 The BTC 5m/15m contract tracker uses read-only Polymarket US REST market metadata and best bid/ask. The US venue is distinct from Polymarket International. For the US Up/Down contract, the reference is typically CF Benchmarks BRTI and the official outcome uses its 60 pre-boundary index readings averaged per the specific rules. The published opening target is not Kraken spot price. A missing target or quote stays unavailable. The chart score is not a forecast or a win probability. This prototype contains no ordering, wallet, account access, or trade execution.
+
+## v0.6 user workflow
+
+One job per section: market selection, live Polymarket US contract details, a single chart quick read, the price chart, optional expanded indicator explanations, and an official contract handoff. On mobile the intro and contract cards are condensed. Technical notes are available but not repeated. The rule score is directional agreement, not odds.
+
+An official CF Benchmarks BRTI latest-value provider is implemented behind explicit authorization and licensing checks, but inactive without configured credentials. Its latest instant value may be compared to the market's official opening target only if fresh. That instantaneous comparison is *not* the settlement calculation, which uses time-window averages. Do not imply a final outcome or expected value without reliable historical calibration.

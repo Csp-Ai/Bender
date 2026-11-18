@@ -32,3 +32,21 @@ Run the dependency-free contract parser tests:
 \`\`\`bash
 node --test site/tests/polymarket.test.cjs
 \`\`\`
+
+## v0.6: Quick read and optional official BRTI data
+
+The phone layout now prioritizes the active contract, one short chart summary, the price chart, and expandable eight-check details. The repeated long explanation and trading instructions were removed.
+
+The contract card can optionally display a **fresh instant CF Benchmarks BRTI** reading and its distance from the official opening target. The reading is not the final 60-second average and is not a prediction. It is never replaced by Kraken BTC prices. By default, the card says **Not connected**.
+
+To enable the reference service, obtain authorized CF Benchmarks API credentials and confirm that the license allows **public display and derived comparisons in Bender**, then configure these server-side Vercel environment variables and redeploy:
+
+```text
+CFB_API_USERNAME=<configured privately in Vercel>
+CFB_API_PASSWORD=<configured privately in Vercel>
+BRTI_DATA_LICENSE_CONFIRMED=true
+```
+
+Do not add credentials to GitHub or paste them in chat. Unauthorized or stale feeds fail closed. The backend uses the documented CF Benchmarks GET `/api/v1/latest_values?id=BRTI` endpoint with Basic authentication, and verifies a reading is at most 15 seconds old.
+
+BRTI parsing tests are in `site/tests/brti.test.cjs`. Run with `node --test site/tests/*.test.cjs` from the repo root. The public Polymarket contract price and live BRTI index have different sources and update rates.

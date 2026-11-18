@@ -39,3 +39,14 @@
 - [ ] Confirm discovery and quote feed live end-to-end; review errors and tighten retry logic if needed
 - [ ] Obtain lawful reliable live BRTI reference price feed and compare to official target
 - [ ] Track actual outcome performance and contract pricing before attempting probabilities
+
+## v0.6 refinements
+- [x] Move the contract ahead of the chart summary
+- [x] Consolidate repeated commentary into one quick read
+- [x] Put all eight indicator checks and levels in expandable details
+- [x] Add reference-price status plus comparison panel
+- [x] Implement official, authenticated CF Benchmarks BRTI latest-value adapter with stale-data rejection
+- [ ] Obtain data access and an explicit distribution license before enabling the reference feed
+- [ ] Verify actual index readings and contract matching end-to-end once authorized
+- [ ] Develop robust exact 60-second opening/closing window aggregation, not a single-tick substitute
+- [ ] Record prior signals and resolved contract outcomes; backtest before probability estimates
