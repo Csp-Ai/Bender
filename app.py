@@ -26,7 +26,7 @@ except Exception as exc:
     st.error(f"No valid signal available: {exc}")
     st.stop()
 if source_label == "DEMO":
-    st.error("SIMULATED DATA — NOT LIVE MARKET PRICES")
+    st.error("SIMULATED DATA  -  NOT LIVE MARKET PRICES")
 a, b, c = st.columns(3)
 a.metric("Market bias", result["bias"])
 b.metric("Rule alignment", f'{result["score"]:+d} / ±{result["max_score"]}')
@@ -43,5 +43,5 @@ st.plotly_chart(chart, use_container_width=True)
 st.subheader("Why Bender classified this chart")
 for v in result["votes"]:
     direction = "Bullish" if v["direction"] > 0 else "Bearish" if v["direction"] < 0 else "Neutral"
-    st.write(f'**{v["factor"]} — {direction}:** {v["evidence"]}')
+    st.write(f'**{v["factor"]}  -  {direction}:** {v["evidence"]}')
 st.caption("No verified predictive edge, out-of-sample backtest, or risk-adjusted performance yet.")

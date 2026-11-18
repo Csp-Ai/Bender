@@ -2,8 +2,8 @@
 (function () {
   const $ = id => document.getElementById(id);
   const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1, requestId:0, controller:null};
-  const colors = {up:"#51dbac",down:"#ff7182",ema9:"#bea3ff",ema20:"#ebbd7c",ema50:"#71accb"};
-  const fmt = v => Number.isFinite(v) ? "$" + new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "—";
+  const colors = {up:"#51dbac",down:"#ff7182",ema9:"#75B9FF",ema20:"#E5C478",ema50:"#D0E8FF"};
+  const fmt = v => Number.isFinite(v) ? "$" + new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "-";
   const shortTime = s => new Date(s * 1000).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   const dirName = d => d > 0 ? "UP" : d < 0 ? "DOWN" : "MIXED";
   const readableBias = bias => bias==="BULLISH"?"LEANING UP":bias==="BEARISH"?"LEANING DOWN":"MIXED SIGNALS";
@@ -212,7 +212,7 @@
       for(let i=0;i<data.length;i++){const xp=x(i),yp=y(series[start+i]);if(i===0)ctx.moveTo(xp,yp);else ctx.lineTo(xp,yp);}
       ctx.stroke();
     });
-    ctx.setLineDash([3,4]);ctx.strokeStyle="#a8a0d588";ctx.beginPath();ctx.moveTo(left,y(a.last.c));ctx.lineTo(left+plotW,y(a.last.c));ctx.stroke();ctx.setLineDash([]);
+    ctx.setLineDash([3,4]);ctx.strokeStyle="#6FA7E788";ctx.beginPath();ctx.moveTo(left,y(a.last.c));ctx.lineTo(left+plotW,y(a.last.c));ctx.stroke();ctx.setLineDash([]);
     if(state.hover>=0&&state.hover<data.length){
       const xp=x(state.hover);ctx.strokeStyle="#94a0b677";ctx.beginPath();ctx.moveTo(xp,top);ctx.lineTo(xp,top+plotH);ctx.stroke();
     }
@@ -242,11 +242,11 @@
   }
   function clearPriorRead() {
     state.analysis=null;state.data=[];state.chartMeta=null;
-    $("bias").textContent="—";$("bias").className="stat-value muted";
-    $("score").textContent="—";$("score").className="stat-value muted";
-    $("price").textContent="—";$("chart-pair").textContent=$("pair").value;
+    $("bias").textContent="-";$("bias").className="stat-value muted";
+    $("score").textContent="-";$("score").className="stat-value muted";
+    $("price").textContent="-";$("chart-pair").textContent=$("pair").value;
     $("chart-subtitle").textContent="Checking the selected market…";
-    $("support").textContent="—";$("resistance").textContent="—";$("rsi").textContent="—";
+    $("support").textContent="-";$("resistance").textContent="-";$("rsi").textContent="-";
     $("votes").replaceChildren();$("brief").replaceChildren();$("warnings").replaceChildren();
     $("chart-tooltip").hidden=true;
     const canvas=$("chart");const ctx=canvas.getContext("2d");ctx.clearRect(0,0,canvas.width,canvas.height);

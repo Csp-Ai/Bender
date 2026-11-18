@@ -1,4 +1,4 @@
-# Bender — chart check (web)
+# Bender  -  chart check (web)
 
 Bender is a friendly, read-only chart analysis website built by Chris and Omar using experience from Chris’s Gifali work. Focus: **Bitcoin (BTC/USD)** and **SPY (S&P 500 ETF)** only.
 

@@ -1,4 +1,4 @@
-# Bender — Goated at reading charts
+# Bender  -  Goated at reading charts
 
 A human-friendly chart-checking project for **BTC** and **SPY**, built by Chris and Omar. Chris contributes AI/trading product experience from the Gifali system; Omar helps shape what traders need to understand quickly.
 

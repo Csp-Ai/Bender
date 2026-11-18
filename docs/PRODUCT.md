@@ -1,4 +1,4 @@
-# Bender product brief — BTC + SPY
+# Bender product brief  -  BTC + SPY
 
 **Promise:** Chris and Omar built a chart reader that explains price action like a friend, while keeping real numbers, sources, and the technical checks transparent.
 
