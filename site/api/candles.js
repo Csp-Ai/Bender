@@ -121,9 +121,9 @@ module.exports=async function handler(req,res){
         ?"A fresh SPY 5m/15m chart could not be verified from the public data feeds. Check the exchange market hours."
         :"Not enough completed BTC candles available. Try again shortly."});
     }
-    res.setHeader("Cache-Control","public, s-maxage=25, stale-while-revalidate=30");
+    res.setHeader("Cache-Control","no-store, max-age=0");
     return res.status(200).json({symbol,interval,source:feed.source,coverage:feed.coverage,
-      observedAt:new Date().toISOString(),candles:feed.bars});
+      observedAt:new Date().toISOString(),lastCandleClosedAt:new Date((feed.bars[feed.bars.length-1].t+interval*60)*1000).toISOString(),candles:feed.bars});
   }catch(e){
     
     return res.status(502).json({error:"Market prices are unavailable right now. Please try again later."});
