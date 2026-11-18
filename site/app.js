@@ -295,7 +295,7 @@
   function describeMarket() {
     const spy=$("pair").value==="SPY";
     $("market-note").hidden=!spy;
-    $("market-note").textContent=spy?"SPY is a stock ETF with market hours and different contract rules. Its live chart feed still needs a stock-data connection.":"";
+    $("market-note").textContent=spy?"SPY uses public intraday stock candles, which may be delayed. The US stock market has limited trading hours, and its Polymarket rules differ from BTC.":"";
     $("contract-note").textContent=spy
       ?"SPY contracts can use different rules and time windows. Check the exact terms in the US app."
       :"Check the official target, time left, and quotes in Polymarket US. Bender does not place trades.";

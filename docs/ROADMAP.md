@@ -63,3 +63,12 @@
 - [ ] Verify stock-feed reliability at market open and during the trading session
 - [ ] Validate quote spread, staleness and displayed order prices in live market snapshots
 - [ ] Paper-track model outputs vs resolved contracts before interpreting the trend score as a trading edge
+
+## v0.8 chart freshness and timestamps
+- [x] Correct opening timestamps to show actual last candle close time and local date/time zone
+- [x] Recheck completed chart candles every 15 seconds with no API caching
+- [x] Revalidate freshness each second, refresh on page return, and mark overdue candles delayed
+- [x] Suppress stale directional signals and old score rather than implying live accuracy
+- [x] Differentiate SPY regular session, closed market, and delayed intraday candles
+- [x] Keep the price readable on narrow phones
+- [ ] Verify the new 5-minute and 15-minute close times on Omar's iPhone in Safari

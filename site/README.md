@@ -70,3 +70,11 @@ The mobile screenshot showed Polymarket opening an individual five-minute event 
 - BTC 15m: https://polymarket.us/category/bitcoin-15m
 
 The page picks the correct destination as soon as the timeframe changes, even while contract data is still fetching. On iOS/Android, the official HTTPS link can open the installed Polymarket app if its universal-link rules support it. Otherwise, the official market webpage loads. A separate homepage fallback is provided. The per-contract API metadata remains in Bender for analysis, but no expiring event URL is used as the primary handoff.
+
+## v0.8: always show the real candle close time
+
+Exchange OHLC timestamps identify the candle **opening**, not its closing. The quick read now computes close = candle start + selected 5-minute or 15-minute interval and shows the close date and local timezone. A 15m candle opened at 12:00 AM closes at 12:15 AM, even if the next contract clock reads 12:21 AM. The live BTC spot ticker is a separate, faster feed.
+
+The chart endpoint returns a non-cacheable response plus an explicit `lastCandleClosedAt` field. The chart checks for new completed candles every 15 seconds while visible, refreshes when users return to the tab, and reassesses freshness every second without waiting for the next fetch. A small provider delay is allowed around each boundary. When a new completed candle is overdue, the UI hides the old up/down bias and rule score instead of passing it off as current. It retains the historical last-close price with a clear delayed label. Outside regular US trading hours, SPY is shown as historical data rather than a live stock session.
+
+The mobile last-candle price is given a full-width row so it does not split the cents onto another line.
