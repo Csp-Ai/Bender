@@ -28,3 +28,14 @@
 - [ ] Verify the deployed browser UI end-to-end on mobile and desktop
 - [ ] Repair GitHub/Vercel integration for automatic deploys
 - [ ] No live order execution, wallet credentials, or implied guaranteed profitability
+
+
+## Live Polymarket US contract tracking (v0.5)
+- [x] Add BTC 5m and 15m contract lookup using official read-only US API
+- [x] Validate current time window, asset, horizon and Up/Down contract type
+- [x] Display official market opening target, expiration countdown, and BBO-derived indicative Up/Down buy prices when provided
+- [x] Show a clear warning that Kraken chart prices are not BRTI settlement reference prices
+- [x] Show unavailability without substituting made-up numbers
+- [ ] Confirm discovery and quote feed live end-to-end; review errors and tighten retry logic if needed
+- [ ] Obtain lawful reliable live BRTI reference price feed and compare to official target
+- [ ] Track actual outcome performance and contract pricing before attempting probabilities

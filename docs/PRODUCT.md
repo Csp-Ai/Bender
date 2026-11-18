@@ -13,3 +13,7 @@
 **What ships now:** informative market research, no wallet, no custody, no trade execution, no AI pretending to know the next move. Users can always pass.
 
 **Next:** actual Polymarket contract discovery and rules, contract-specific thresholds and prices, paper tracking, historical testing. Show modeled probabilities only once calibrated on out-of-sample data and after accounting for fees and slippage.
+
+
+## Polymarket US BTC proof of concept
+The BTC 5m/15m contract tracker uses read-only Polymarket US REST market metadata and best bid/ask. The US venue is distinct from Polymarket International. For the US Up/Down contract, the reference is typically CF Benchmarks BRTI and the official outcome uses its 60 pre-boundary index readings averaged per the specific rules. The published opening target is not Kraken spot price. A missing target or quote stays unavailable. The chart score is not a forecast or a win probability. This prototype contains no ordering, wallet, account access, or trade execution.

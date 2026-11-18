@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0A101E" />
   <meta name="description" content="Bender checks BTC and SPY charts and explains what the signals are saying, in plain English." />
   <title>Bender  -  Goated at reading charts</title>
-  <link rel="stylesheet" href="/styles.css?v=0.4.0" />
+  <link rel="stylesheet" href="/styles.css?v=0.5.0" />
 </head>
 <body>
 <div class="shell">
@@ -20,7 +20,7 @@
     <div class="side-bottom"><div class="crew-card"><div class="crew-label">BUILT BY</div><div class="avatars"><span>C</span><span>O</span><div>Chris <small>×</small> Omar</div></div><p>Built from Chris’s Gifali experience. Made for real-world decisions.</p></div><a href="https://github.com/Csp-Ai/Bender" target="_blank" rel="noopener" class="github">⌘ &nbsp; GitHub repository <span>↗</span></a></div>
   </aside>
   <main class="main">
-    <header class="topbar"><div class="breadcrumbs">BENDER <span>/</span> <strong>CHART CHECK</strong></div><div class="top-right"><span class="session">● <span id="data-status">NO DATA</span></span><span class="build">BETA v0.4</span></div></header>
+    <header class="topbar"><div class="breadcrumbs">BENDER <span>/</span> <strong>CHART CHECK</strong></div><div class="top-right"><span class="session">● <span id="data-status">NO DATA</span></span><span class="build">BETA v0.5</span></div></header>
     <section class="hero"><div><div class="eyebrow"><span class="eyedot"></span> CHART CHECK <span class="slash">//</span> BTC + SPY</div><h1>What’s the move?<br/><span>Let’s check the chart.</span></h1><p>Pick Bitcoin or SPY. Bender checks the trend, momentum, and volume - then tells you what it sees without all the trading jargon.</p></div><div class="hero-graphic" aria-hidden="true"><span class="target-ring r1"></span><span class="target-ring r2"></span><span class="target-ring r3"></span><span class="hero-arrow">↗</span></div></section>
     <section class="workspace">
       <div class="workspace-header"><div><div class="section-kicker">01 / PICK YOUR MARKET</div><h2>Get the quick read</h2></div><div class="controls">
@@ -37,19 +37,40 @@
         <div class="stat-card"><div class="stat-title">HOW MANY CHECKS AGREE? <span>◉</span></div><div class="score-flex"><div id="score" class="stat-value">...</div><span class="score-scale">/ ±8</span></div><div id="score-explain" class="stat-description">Not a win percentage</div></div>
         <div class="stat-card"><div class="stat-title">LAST PRICE WE CHECKED <span>◷</span></div><div id="price" class="stat-value price">...</div><div id="price-explain" class="stat-description">From the latest finished candle</div></div>
       </div>
+
+      <section class="poly-card" id="poly-panel" aria-label="Polymarket US contract tracker">
+        <div class="poly-top">
+          <div><div class="section-kicker">02 / POLYMARKET US</div><h3>What does the actual BTC bet say?</h3><p>Real contract details, separate from Bender's chart opinion.</p></div>
+          <div class="poly-top-right"><span id="poly-feed-tag" class="poly-tag">Checking market...</span><span class="poly-rate">Checks every 15 seconds</span></div>
+        </div>
+        <div id="poly-message" class="poly-message" role="status">Finding the current BTC contract...</div>
+        <div id="poly-fields" hidden>
+          <div class="poly-contract-row"><strong id="poly-market-name">BTC Up or Down</strong><span id="poly-window" class="poly-tag">5 MIN</span></div>
+          <div class="poly-grid">
+            <div class="poly-cell"><span>PRICE TO BEAT</span><strong id="poly-target">Not available</strong><small>Official contract opening reference</small></div>
+            <div class="poly-cell"><span>TIME LEFT</span><strong id="poly-countdown">--:--</strong><small id="poly-closes">Contract closing time</small></div>
+            <div class="poly-cell"><span>UP BUY PRICE</span><strong class="poly-up" id="poly-up">Not available</strong><small>Indicative ask, not a win forecast</small></div>
+            <div class="poly-cell"><span>DOWN BUY PRICE</span><strong class="poly-down" id="poly-down">Not available</strong><small>Indicative ask, not a win forecast</small></div>
+          </div>
+          <p id="poly-read" class="poly-read">Reading the listed contract...</p>
+          <p id="poly-disclosure" class="poly-disclosure"></p>
+        </div>
+        <div class="poly-footer"><span id="poly-source-label">Source: Polymarket US public market data</span><a id="poly-market-link" href="https://polymarket.us/category/btc" target="_blank" rel="noopener noreferrer">Check the contract in Polymarket US ↗</a></div>
+      </section>
       <div class="chart-card"><div class="chart-top"><div><div class="chart-title"><strong id="chart-pair">BTC / USD</strong><span id="chart-interval">5m</span><span class="chart-label">PRICE CHART</span></div><div id="chart-subtitle" class="chart-subtitle">Checking the price feed…</div></div><div class="legend"><span><i class="leg-up"></i> EMA 9</span><span><i class="leg-mid"></i> EMA 20</span><span><i class="leg-long"></i> EMA 50</span></div></div><div class="chart-container"><canvas id="chart" role="img" aria-label="Market candlestick chart with exponential moving averages"></canvas><div id="chart-tooltip" class="chart-tooltip" hidden></div></div><div class="chart-bottom"><span>● <span id="updated">Not analyzed</span></span><span>Finished candles only · Refreshes when this page is open</span></div></div>
-      <div class="lower-grid"><section class="panel"><div class="panel-head"><div><div class="section-kicker">02 / SHOW YOUR WORK</div><h3>Why is Bender leaning that way?</h3></div><span class="chip">8 CHECKS</span></div><div id="votes" class="factor-list"><div class="empty">Checking the chart now…</div></div></section>
-      <section class="panel insight"><div class="panel-head"><div><div class="section-kicker">03 / THE BIG PICTURE</div><h3>Here’s the read</h3></div><span class="chip chip-purple">PLAIN ENGLISH</span></div><div id="brief"><p class="muted-copy">Here’s where Bender explains what the chart is doing.</p></div><div class="level-group"><div class="level"><span>RECENT FLOOR (SUPPORT)</span><strong id="support">...</strong></div><div class="level"><span>RECENT CEILING (RESISTANCE)</span><strong id="resistance">...</strong></div><div class="level"><span>MOMENTUM METER (RSI)</span><strong id="rsi">...</strong></div></div><div id="warnings" class="warnings"></div></section></div>
-      <section class="trade-guide"><div class="trade-guide-head"><div><div class="section-kicker">04 / BEFORE YOU PLACE A TRADE</div><h3>Trading on Polymarket?</h3></div><a id="polymarket-link" href="https://polymarket.com" target="_blank" rel="noopener noreferrer">Open Polymarket ↗</a></div>
+      <div class="lower-grid"><section class="panel"><div class="panel-head"><div><div class="section-kicker">03 / SHOW YOUR WORK</div><h3>Why is Bender leaning that way?</h3></div><span class="chip">8 CHECKS</span></div><div id="votes" class="factor-list"><div class="empty">Checking the chart now…</div></div></section>
+      <section class="panel insight"><div class="panel-head"><div><div class="section-kicker">04 / THE BIG PICTURE</div><h3>Here’s the read</h3></div><span class="chip chip-purple">PLAIN ENGLISH</span></div><div id="brief"><p class="muted-copy">Here’s where Bender explains what the chart is doing.</p></div><div class="level-group"><div class="level"><span>RECENT FLOOR (SUPPORT)</span><strong id="support">...</strong></div><div class="level"><span>RECENT CEILING (RESISTANCE)</span><strong id="resistance">...</strong></div><div class="level"><span>MOMENTUM METER (RSI)</span><strong id="rsi">...</strong></div></div><div id="warnings" class="warnings"></div></section></div>
+      <section class="trade-guide"><div class="trade-guide-head"><div><div class="section-kicker">05 / BEFORE YOU PLACE A TRADE</div><h3>Trading on Polymarket?</h3></div><a id="polymarket-link" href="https://polymarket.us/category/btc" target="_blank" rel="noopener noreferrer">Open Polymarket US ↗</a></div>
         <p id="contract-note">Bender reads the chart; Polymarket decides the winning outcome. Check the contract’s exact rules before you trade.</p>
         <div class="steps"><div><strong>1</strong><span>Read Bender’s take.</span></div><div><strong>2</strong><span>Check the actual market: price to beat, time left, and odds.</span></div><div><strong>3</strong><span>You decide: Up, Down, or pass.</span></div></div>
-        <div class="trade-foot">Right now this is a chart checker, <strong>not a Polymarket odds calculator</strong>. Matching live contracts and tracking results come next.</div>
+        <div class="trade-foot">Bender checks BTC contract details when available. A quote is not a probability we have verified, and we have not connected the official live BRTI reference price. SPY contracts are not integrated yet.</div>
       </section>
       <div class="disclaimer"><span class="disclaimer-mark">!</span><p><strong>No magic picks.</strong> A bullish chart does not guarantee the next five minutes go up. Bender’s score counts technical signals - not winning odds. Prices can change fast, and nothing here places a trade for you.</p></div>
       <footer><span>BENDER / CHRIS × OMAR</span><span>CHECK THE CHART → THINK IT THROUGH → YOUR CALL</span></footer>
     </section>
   </main>
 </div>
-<script src="/app.js?v=0.4.0" defer></script>
+<script src="/app.js?v=0.5.0" defer></script>
+<script src="/polymarket.js?v=0.5.0" defer></script>
 </body>
 </html>

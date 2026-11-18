@@ -12,3 +12,29 @@
 .trade-guide{background:linear-gradient(135deg,#152C4C,#101D30)}.trade-guide .steps strong{background:#D4B66A;color:#11223D}
 .chart-card,.panel,.stat-card{border-color:#294466}.stat-card{background:#132039}
 .chart-title>span{background:#1C3554}.chip-purple{background:#17395F;color:#D7EDFF}.spy{background:#164372;color:#E6F5FF}
+
+/* Polymarket US live contract info. Distinct from the chart analysis score. */
+.poly-card{background:linear-gradient(135deg,#152946,#101D31);border:1px solid #37659B;border-radius:13px;padding:23px;margin:0 0 15px}
+.poly-top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:start}
+.poly-top h3{font-size:20px;letter-spacing:-.4px;margin:8px 0 4px}
+.poly-top p{font-size:12px;color:#ACBED5;line-height:1.6;margin:0}
+.poly-top-right{text-align:right;display:grid;justify-items:end;gap:6px}
+.poly-rate{font-size:10px;color:#96A9C0}
+.poly-tag{background:#1D3B63;border:1px solid #3970AB;border-radius:6px;padding:6px 9px;font-size:10px;font-weight:800;color:#DBEDFF;white-space:nowrap}
+.poly-message{margin-top:19px;border:1px dashed #3D5C7D;background:#101F36;border-radius:9px;padding:13px 15px;font-size:12px;color:#B5CCE4;line-height:1.6}
+.poly-contract-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:20px 0 14px}
+.poly-contract-row strong{font-size:16px}
+.poly-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.poly-cell{background:#0E1C31;border:1px solid #2B486B;border-radius:10px;padding:15px 11px;min-width:0}
+.poly-cell>span{display:block;font-size:9px;font-weight:800;letter-spacing:1px;color:#9BB1C9}
+.poly-cell>strong{display:block;font-size:clamp(16px,2vw,24px);letter-spacing:-.4px;margin:10px 0 8px;overflow-wrap:anywhere}
+.poly-cell>small{display:block;color:#8DA1B8;font-size:10px;line-height:1.5}
+.poly-up{color:#51dbac}.poly-down{color:#ff7182}
+.poly-read{font-size:13px;color:#D3E1F2;line-height:1.75;margin:17px 0 8px}
+.poly-disclosure{font-size:11px;color:#A3BBD4;line-height:1.65;margin:0}
+.poly-footer{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;border-top:1px solid #365274;padding-top:14px;margin-top:16px}
+.poly-footer>span{font-size:10px;color:#96AAC1}
+.poly-footer a{font-size:11px;font-weight:800;color:#D8ECFF;text-decoration:underline;text-underline-offset:3px}
+.poly-message[hidden],#poly-fields[hidden],#poly-panel[hidden]{display:none}
+@media(max-width:950px){.poly-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.poly-top-right{justify-items:start;text-align:left}}
+@media(max-width:530px){.poly-card{padding:17px}.poly-top h3{font-size:18px}.poly-grid{gap:8px}.poly-cell{padding:13px 10px}.poly-cell>strong{font-size:21px}.poly-cell>span{font-size:8px}}

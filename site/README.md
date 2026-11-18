@@ -21,3 +21,14 @@ ALPACA_API_SECRET_KEY=<from Alpaca dashboard>
 Do not paste secrets into chat or commit them. This endpoint requests IEX stock bars (limited exchange coverage), and uses US regular trading hours. Stock prices do not settle the same way as Bitcoin's Polymarket short-window contracts.
 
 Development notes: GitHub integration may need access to this repository for automatic deployment. The Python research prototype at repository root remains separate.
+
+
+## Read-only Polymarket US BTC tracker (v0.5)
+The site now has a distinct contract panel when BTC and Real Prices are selected. It polls the public Polymarket US market and best bid/offer endpoints. The endpoint verifies asset, 5m/15m horizon, Up/Down family, and actual time window using the venue's typed \`assetPriceTerms\`; it never assumes a contract from a guessed slug. If available, it displays the official price to beat and indicative asks computed from the YES book (buy Up at best ask; buy Down at 1 minus best bid). A countdown runs each second and a network check runs every 15 seconds while the page is active.
+
+No live BRTI index data feed is connected yet. Never equate the Kraken spot chart with the settlement reference. No outcome odds forecasts, modeled fair value, or automatic trade placements exist.
+
+Run the dependency-free contract parser tests:
+\`\`\`bash
+node --test site/tests/polymarket.test.cjs
+\`\`\`
