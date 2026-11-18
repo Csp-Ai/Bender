@@ -5,7 +5,8 @@
   const colors = {up:"#51dbac",down:"#ff7182",ema9:"#bea3ff",ema20:"#ebbd7c",ema50:"#71accb"};
   const fmt = v => Number.isFinite(v) ? "$" + new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "—";
   const shortTime = s => new Date(s * 1000).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-  const dirName = d => d > 0 ? "BULLISH" : d < 0 ? "BEARISH" : "NEUTRAL";
+  const dirName = d => d > 0 ? "UP" : d < 0 ? "DOWN" : "MIXED";
+  const readableBias = bias => bias==="BULLISH"?"LEANING UP":bias==="BEARISH"?"LEANING DOWN":"MIXED SIGNALS";
   const dirClass = d => d > 0 ? "bull" : d < 0 ? "bear" : "neutral";
 
   function emaSeries(values, span) {
@@ -65,7 +66,7 @@
     const now=Math.floor(Date.now()/1000);
     const end=Math.floor(now/(interval*60))*interval*60-interval*60;
     let seed=127;const rand=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;};
-    let p=65000;const rows=[];
+    let p=state.symbol==="SPY"?650:65000;const rows=[];
     for(let i=0;i<count;i++){
       const o=p;
       p=Math.max(100,p*(1+0.00015+(rand()-.5)*0.006));
@@ -78,13 +79,13 @@
     if(state.loading)return;
     state.symbol=$("pair").value;state.interval=Number($("interval").value);state.source=$("source").value;
     state.loading=true;
-    $("refresh").disabled=true;$("refresh").textContent="Analyzing…";
+    $("refresh").disabled=true;$("refresh").textContent="Checking…";
     $("error").hidden=true;
     $("demoBanner").hidden=state.source!=="demo";
     $("data-status").textContent="UPDATING";
     try {
-      let rows;
-      if(state.source==="demo")rows=demo();
+      let rows;let feedName="";
+      if(state.source==="demo"){rows=demo();feedName="Fake practice candles";}
       else {
         const url="/api/candles?symbol="+encodeURIComponent(state.symbol)+"&interval="+state.interval;
         const controller=new AbortController();
@@ -93,7 +94,7 @@
           const response=await fetch(url,{signal:controller.signal,cache:"no-store"});
           const json=await response.json();
           if(!response.ok)throw new Error(json.error||"Market feed unavailable");
-          rows=json.candles;
+          rows=json.candles;feedName=state.symbol==="SPY"?"Alpaca · IEX-only ETF bars":"Kraken · BTC spot candles";
         }finally{clearTimeout(timeout);}
       }
       if(!rows.every(r=>[r.t,r.o,r.h,r.l,r.c,r.v].every(Number.isFinite)
@@ -103,28 +104,28 @@
       state.data=rows;
       state.hover=-1;
       render();
-      $("data-status").textContent=state.source==="demo"?"SIMULATED":"KRAKEN / CLOSED BARS";
+      $("data-status").textContent=state.source==="demo"?"PRACTICE MODE":state.symbol==="SPY"?"SPY / IEX BARS":"BTC / KRAKEN BARS";
       $("updated").textContent="Analyzed " + new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}) + " local";
-      if(!isAuto)document.title=state.analysis.bias+" | Bender";
+      if(!isAuto)document.title=readableBias(state.analysis.bias)+" | Bender";
     }catch(e){
-      $("data-status").textContent="FEED UNAVAILABLE";
-      $("error").textContent="Unable to update: "+e.message+" Existing results, if any, may be stale.";
+      $("data-status").textContent=state.symbol==="SPY"?"SPY FEED UNAVAILABLE":"PRICE FEED UNAVAILABLE";
+      $("error").textContent="Can’t check this chart right now: "+e.message+" Try again, or use Practice (Fake) to explore the layout.";
       $("error").hidden=false;
     }finally{
-      state.loading=false;$("refresh").disabled=false;$("refresh").textContent="↻  Analyze chart";
+      state.loading=false;$("refresh").disabled=false;$("refresh").textContent="↻  Check chart";
     }
   }
   function render(){
     const a=state.analysis,rows=state.data,scoreDirection=Math.sign(a.score);
-    $("bias").textContent=a.bias;$("bias").className="stat-value "+dirClass(a.score);
-    $("bias-explain").textContent="Based on 8 directional checks";
+    $("bias").textContent=readableBias(a.bias);$("bias").className="stat-value "+dirClass(a.score);
+    $("bias-explain").textContent="The chart’s lean, not a bet pick";
     $("score").textContent=(a.score>0?"+":"")+a.score;$("score").className="stat-value "+dirClass(a.score);
-    $("score-explain").textContent="Rule agreement · not win probability";
+    $("score-explain").textContent="Out of 8 checks · not winning odds";
     $("price").textContent=fmt(a.last.c);
     $("price-explain").textContent="Candle at "+new Date(a.last.t*1000).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})+" local";
-    $("chart-pair").textContent=state.source==="demo"?"SYNTHETIC / DEMO":state.symbol.replace("/"," / ");
+    $("chart-pair").textContent=state.source==="demo"?"PRACTICE · "+state.symbol:state.symbol.replace("/"," / ");
     $("chart-interval").textContent=state.interval+"m";
-    $("chart-subtitle").textContent=(state.source==="demo"?"Simulated":"Kraken")+" · "+rows.length+" completed candles received";
+    $("chart-subtitle").textContent=(state.source==="demo"?"Made-up data":state.symbol==="SPY"?"SPY · Alpaca IEX-only market data":"BTC · Kraken spot prices")+" · "+rows.length+" finished candles";
     $("support").textContent=fmt(a.support);
     $("resistance").textContent=fmt(a.resistance);
     $("rsi").textContent=a.rsi.toFixed(1);
@@ -133,20 +134,32 @@
       const row=document.createElement("div");row.className="factor";
       const left=document.createElement("div");
       const title=document.createElement("div");title.className="factor-title";title.textContent=v.name;
-      const detail=document.createElement("div");detail.className="factor-sub";detail.textContent=v.why;
-      left.append(title,detail);
+      const detail=document.createElement("div");detail.className="factor-sub";
+      const plain={
+        "Short-term trend":{up:"Recent prices have been climbing.",down:"Recent prices have been sliding.",mix:"No clear short-term lean."},
+        "Intermediate trend":{up:"Price is above its recent average.",down:"Price is below its recent average.",mix:"Price is near its recent average."},
+        "Long-term structure":{up:"The bigger trend points up.",down:"The bigger trend points down.",mix:"The bigger trend isn’t clear."},
+        "Volume-weighted price":{up:"Price is above the recent volume-weighted level.",down:"Price is below the recent volume-weighted level.",mix:"No clear read from traded volume."},
+        "MACD momentum":{up:"The recent push favors buyers.",down:"The recent push favors sellers.",mix:"Momentum looks balanced."},
+        "RSI context":{up:"Momentum is positive without being extreme.",down:"Momentum is negative without being extreme.",mix:"Momentum is stretched or unclear."},
+        "Range breakout":{up:"Price just pushed over its recent high.",down:"Price fell under its recent low.",mix:"Price is still inside its recent range."},
+        "Volume confirmation":{up:"A higher-volume candle closed up.",down:"A higher-volume candle closed down.",mix:"Not enough extra volume to confirm the move."}
+      };
+      const wording=plain[v.name];detail.textContent=wording?(v.dir>0?wording.up:v.dir<0?wording.down:wording.mix):v.why;
+      const tech=document.createElement("span");tech.className="factor-tech";tech.textContent=v.why;
+      left.append(title,detail,tech);
       const tag=document.createElement("span");tag.className="factor-tag "+dirClass(v.dir);tag.textContent=dirName(v.dir);
       row.append(left,tag);votes.appendChild(row);
     });
-    let lead=a.bias==="BULLISH"?"Buy-side indicators currently dominate.":a.bias==="BEARISH"?"Sell-side indicators currently dominate.":"The technical factors are mixed.";
+    let lead=a.bias==="BULLISH"?"More signals point up than down right now.":a.bias==="BEARISH"?"More signals point down than up right now.":"The signals disagree, so this chart has no strong lean.";
     let count=a.votes.filter(v=>v.dir===scoreDirection&&v.dir!==0).length;
     const brief=$("brief");brief.replaceChildren();
     const p=document.createElement("p");
-    p.textContent=lead+" Bender scored "+a.score+" on its −8 to +8 rule scale. "+count+" checks agree with the prevailing direction. RSI is "+a.rsi.toFixed(1)+", with nearby observed support at "+fmt(a.support)+" and resistance at "+fmt(a.resistance)+". This is an observation, not a price prediction.";
+    p.textContent=lead+" The score is "+(a.score>0?"+":"")+a.score+" out of ±8. "+(scoreDirection===0?"No single direction stands out.":count+" of the eight checks currently point in the same direction.")+" Price has recently bounced near "+fmt(a.support)+" and run into selling around "+fmt(a.resistance)+". That doesn’t tell us how a specific Polymarket contract will settle.";
     brief.appendChild(p);
     const warnings=$("warnings");warnings.replaceChildren();
     a.warnings.forEach(w=>{const div=document.createElement("div");div.className="warning";div.textContent=w;warnings.appendChild(div);});
-    if(a.warnings.length===0){const div=document.createElement("div");div.className="muted-copy";div.textContent="No obvious data freshness warning. Price action can still change abruptly.";warnings.appendChild(div);}
+    if(a.warnings.length===0){const div=document.createElement("div");div.className="muted-copy";div.textContent="Data looks recent, but the next candle can still go either way.";warnings.appendChild(div);}
     draw();
   }
   function draw(){
@@ -213,11 +226,32 @@
     tip.style.left=Math.min(Math.max(8,pointerX-90),Math.max(8,meta.w-270))+"px";
     tip.style.top="8px";
   }
+  function describeMarket() {
+    const spy=$("pair").value==="SPY";
+    $("market-note").textContent=spy
+      ?"SPY is a stock ETF, not Bitcoin. It mostly trades during US market hours. Its 5m/15m chart candles do NOT mean Polymarket has matching 5m/15m SPY bets. The SPY feed requires a stock-data connection."
+      :"BTC trades around the clock. These are Kraken chart prices, NOT the special reference price that can settle a Polymarket bet. Check the actual contract.";
+    $("contract-note").textContent=spy
+      ?"SPY markets may ask about the day’s close or reaching a target by a deadline. Check the exact market and its official price source before considering a trade. A 5-minute SPY chart doesn’t automatically match a 5-minute bet."
+      :"Bitcoin may have 5-minute or 15-minute Up/Down markets. Bender helps you read the trend; Polymarket sets its own price to beat and closing time. Check those numbers and the contract price first.";
+    $("polymarket-link").href=spy?"https://polymarket.com/predictions/spy":"https://polymarket.com/crypto/bitcoin/updown";
+  }
+  function clearPriorRead() {
+    state.analysis=null;state.data=[];state.chartMeta=null;
+    $("bias").textContent="—";$("bias").className="stat-value muted";
+    $("score").textContent="—";$("score").className="stat-value muted";
+    $("price").textContent="—";$("chart-pair").textContent=$("pair").value;
+    $("chart-subtitle").textContent="Checking the selected market…";
+    $("support").textContent="—";$("resistance").textContent="—";$("rsi").textContent="—";
+    $("votes").replaceChildren();$("brief").replaceChildren();$("warnings").replaceChildren();
+    $("chart-tooltip").hidden=true;
+    const canvas=$("chart");const ctx=canvas.getContext("2d");ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
   $("chart").addEventListener("mousemove",move);
   $("chart").addEventListener("mouseleave",()=>{state.hover=-1;$("chart-tooltip").hidden=true;draw();});
   $("refresh").addEventListener("click",()=>load(false));
-  ["pair","interval","source"].forEach(id=>$(id).addEventListener("change",()=>load(false)));
+  ["pair","interval","source"].forEach(id=>$(id).addEventListener("change",()=>{clearPriorRead();describeMarket();load(false);}));
   window.addEventListener("resize",draw);
   setInterval(()=>{if(document.visibilityState==="visible"&&$("source").value==="live")load(true);},45000);
-  load(false);
+  describeMarket();load(false);
 })();
