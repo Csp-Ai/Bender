@@ -1,19 +1,15 @@
-# Bender: product brief
+# Bender product brief — BTC + SPY
 
-**Mission:** Help two human traders see *what a chart supports* and *why*, rather than presenting opaque confident guesses.
+**Promise:** Chris and Omar built a chart reader that explains price action like a friend, while keeping real numbers, sources, and the technical checks transparent.
 
-**Users:** Chris and Omar. Omar defines chart setups, useful horizons and candidate criteria. Chris coordinates the architecture, evidence standards, quality and releases.
+**Why:** Omar wants to check Bender before looking at a Polymarket contract, then place his own trade if the evidence and actual contract terms make sense. Chris brings AI and prior trading system experience from Gifali; Omar brings trader-facing priorities and feedback.
 
-## Minimum useful result
-Given an instrument and 5- or 15-minute bar interval, show the latest closed-candle timestamp, data origin, candlestick chart, technical observations, directional alignment, warnings and reference levels. Never present simulated data as current prices. Never conflate rule agreement with a probability of profitable trades.
+**Start with two:** BTC/USD (crypto, 24/7) and SPY (the S&P 500 exchange-traded fund, subject to stock market hours).
 
-## Product principles
-1. Observed data and computed features are separable from explanations.
-2. No result without adequate valid historical bars.
-3. All source and freshness limitations are visible.
-4. A human controls any trading decision.
-5. Every strategy change should be tested on held-out historical data before claiming improved accuracy.
-6. Screenshots are useful for annotation but cannot independently establish trustworthy numeric prices.
+**Site:** easy input for the market and 5/15-minute chart candles. Output in ordinary language: up/down/mixed chart lean, 8-factor alignment score (not a probability), last completed candle, trends and the reason for each check, support/resistance, source and warnings.
 
-## Non-goals today
-No broker credentials, wallet custody, real-money trade placement, market-order execution, trade-copying from screenshots, background alerts or profitability promises. These require additional research and security controls.
+**Accuracy and honesty:** Kraken BTC spot price is NOT the same as the Chainlink measure that can settle a BTC Polymarket contract. SPY market terms may differ from the BTC 5/15-minute series. Never fabricate a matching Polymarket market or odds. No validated hit rate exists. SPY's authenticated data provider must be connected before labeling prices live. Avoid stale price display on switching markets.
+
+**What ships now:** informative market research, no wallet, no custody, no trade execution, no AI pretending to know the next move. Users can always pass.
+
+**Next:** actual Polymarket contract discovery and rules, contract-specific thresholds and prices, paper tracking, historical testing. Show modeled probabilities only once calibrated on out-of-sample data and after accounting for fees and slippage.

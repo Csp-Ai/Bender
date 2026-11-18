@@ -4,44 +4,49 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0d14" />
-  <meta name="description" content="Bender: explainable crypto chart intelligence for human decisions." />
+  <meta name="description" content="Bender checks BTC and SPY charts and explains what the signals are saying, in plain English." />
   <title>Bender — Goated at reading charts</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <div class="brand"><div class="brand-icon">B<span>↗</span></div><div><div class="brand-name">BENDER<span class="dot">.</span></div><div class="brand-line">MARKET INTELLIGENCE</div></div></div>
-    <div class="section-label">WORKSPACE</div>
-    <nav class="nav"><a href="/" class="nav-item active"><span>▥</span> Terminal <i>01</i></a><div class="nav-item disabled"><span>◈</span> Signal history <em>SOON</em></div><div class="nav-item disabled"><span>⏱</span> Watchlists <em>SOON</em></div></nav>
-    <div class="section-label markets-heading">WATCHED MARKETS</div>
+    <div class="brand"><div class="brand-icon">B<span>↗</span></div><div><div class="brand-name">BENDER<span class="dot">.</span></div><div class="brand-line">CHART CHECKS, NO HYPE</div></div></div>
+    <div class="section-label">THE SETUP</div>
+    <nav class="nav"><a href="/" class="nav-item active"><span>▥</span> Chart check <i>01</i></a><div class="nav-item disabled"><span>◈</span> Past reads <em>SOON</em></div><div class="nav-item disabled"><span>⏱</span> Alerts <em>SOON</em></div></nav>
+    <div class="section-label markets-heading">WE WATCH TWO</div>
     <div class="market-row"><div class="coin-symbol bitcoin">₿</div><div><b>Bitcoin</b><small>BTC / USD</small></div><span class="market-indicator"></span></div>
-    <div class="market-row"><div class="coin-symbol eth">Ξ</div><div><b>Ethereum</b><small>ETH / USD</small></div><span class="market-indicator"></span></div>
-    <div class="market-row"><div class="coin-symbol sol">◎</div><div><b>Solana</b><small>SOL / USD</small></div><span class="market-indicator"></span></div>
-    <div class="side-bottom"><div class="crew-card"><div class="crew-label">BUILT BY</div><div class="avatars"><span>C</span><span>O</span><div>Chris <small>×</small> Omar</div></div><p>Research first. Discipline always.</p></div><a href="https://github.com/Csp-Ai/Bender" target="_blank" rel="noopener" class="github">⌘ &nbsp; GitHub repository <span>↗</span></a></div>
+    <div class="market-row"><div class="coin-symbol spy">S</div><div><b>S&amp;P 500 ETF</b><small>SPY (US stocks)</small></div><span class="market-indicator"></span></div>
+    <div class="side-bottom"><div class="crew-card"><div class="crew-label">BUILT BY</div><div class="avatars"><span>C</span><span>O</span><div>Chris <small>×</small> Omar</div></div><p>Built from Chris’s Gifali experience. Made for real-world decisions.</p></div><a href="https://github.com/Csp-Ai/Bender" target="_blank" rel="noopener" class="github">⌘ &nbsp; GitHub repository <span>↗</span></a></div>
   </aside>
   <main class="main">
-    <header class="topbar"><div class="breadcrumbs">WORKSPACE <span>/</span> <strong>TERMINAL</strong></div><div class="top-right"><span class="session">● <span id="data-status">NO DATA</span></span><span class="build">BETA v0.2</span></div></header>
-    <section class="hero"><div><div class="eyebrow"><span class="eyedot"></span> SYSTEM ONLINE <span class="slash">//</span> INTELLIGENCE TERMINAL</div><h1>Read the market.<br/><span>Not the noise.</span></h1><p>Bender breaks down price action, trend, momentum, and volume into transparent bullish or bearish signals.</p></div><div class="hero-graphic" aria-hidden="true"><span class="target-ring r1"></span><span class="target-ring r2"></span><span class="target-ring r3"></span><span class="hero-arrow">↗</span></div></section>
+    <header class="topbar"><div class="breadcrumbs">BENDER <span>/</span> <strong>CHART CHECK</strong></div><div class="top-right"><span class="session">● <span id="data-status">NO DATA</span></span><span class="build">BETA v0.3</span></div></header>
+    <section class="hero"><div><div class="eyebrow"><span class="eyedot"></span> CHART CHECK <span class="slash">//</span> BTC + SPY</div><h1>What’s the move?<br/><span>Let’s check the chart.</span></h1><p>Pick Bitcoin or SPY. Bender checks the trend, momentum, and volume—then tells you what it sees without all the trading jargon.</p></div><div class="hero-graphic" aria-hidden="true"><span class="target-ring r1"></span><span class="target-ring r2"></span><span class="target-ring r3"></span><span class="hero-arrow">↗</span></div></section>
     <section class="workspace">
-      <div class="workspace-header"><div><div class="section-kicker">01 / LIVE ANALYSIS</div><h2>Chart Intelligence</h2></div><div class="controls">
-        <label class="control"><span>ASSET</span><select id="pair" aria-label="Asset"><option value="BTC/USD">BTC / USD</option><option value="ETH/USD">ETH / USD</option><option value="SOL/USD">SOL / USD</option></select></label>
-        <label class="control"><span>TIMEFRAME</span><select id="interval" aria-label="Timeframe"><option value="5">5 MIN</option><option value="15">15 MIN</option></select></label>
-        <label class="control"><span>DATA</span><select id="source" aria-label="Data source"><option value="live">LIVE MARKET</option><option value="demo">SIMULATED</option></select></label>
-        <button id="refresh" class="analyze-btn">↻ &nbsp; Analyze chart</button>
+      <div class="workspace-header"><div><div class="section-kicker">01 / PICK YOUR MARKET</div><h2>Get the quick read</h2></div><div class="controls">
+        <label class="control"><span>WHAT ARE WE WATCHING?</span><select id="pair" aria-label="Market"><option value="BTC/USD">Bitcoin (BTC)</option><option value="SPY">S&amp;P 500 ETF (SPY)</option></select></label>
+        <label class="control"><span>CHART CANDLES</span><select id="interval" aria-label="Chart candle size"><option value="5">5 MIN</option><option value="15">15 MIN</option></select></label>
+        <label class="control"><span>MODE</span><select id="source" aria-label="Data mode"><option value="live">REAL PRICES</option><option value="demo">PRACTICE (FAKE)</option></select></label>
+        <button id="refresh" class="analyze-btn">↻ &nbsp; Check chart</button>
       </div></div>
+      <div id="market-note" class="market-note">BTC chart uses Kraken prices. Polymarket settles using its own reference price, so always check the actual contract.</div>
       <div id="error" class="error" hidden></div>
-      <div id="demoBanner" class="demo-banner" hidden>⚠ SIMULATED DATA — prices and signals below are not live market information.</div>
+      <div id="demoBanner" class="demo-banner" hidden>⚠ PRACTICE MODE — THESE PRICES ARE MADE UP. Do not use them for a real trade.</div>
       <div class="stats">
-        <div class="stat-card"><div class="stat-title">MARKET BIAS <span>↗</span></div><div id="bias" class="stat-value muted">—</div><div id="bias-explain" class="stat-description">Awaiting chart data</div></div>
-        <div class="stat-card"><div class="stat-title">SIGNAL ALIGNMENT <span>◉</span></div><div class="score-flex"><div id="score" class="stat-value">—</div><span class="score-scale">/ ±8</span></div><div id="score-explain" class="stat-description">Directional rule score, not odds</div></div>
-        <div class="stat-card"><div class="stat-title">LAST CLOSED PRICE <span>◷</span></div><div id="price" class="stat-value price">—</div><div id="price-explain" class="stat-description">Most recent completed candle</div></div>
+        <div class="stat-card"><div class="stat-title">WHAT’S THE CHART LEANING? <span>↗</span></div><div id="bias" class="stat-value muted">—</div><div id="bias-explain" class="stat-description">Not a bet pick — just chart direction</div></div>
+        <div class="stat-card"><div class="stat-title">HOW MANY CHECKS AGREE? <span>◉</span></div><div class="score-flex"><div id="score" class="stat-value">—</div><span class="score-scale">/ ±8</span></div><div id="score-explain" class="stat-description">Not a win percentage</div></div>
+        <div class="stat-card"><div class="stat-title">LAST PRICE WE CHECKED <span>◷</span></div><div id="price" class="stat-value price">—</div><div id="price-explain" class="stat-description">From the latest finished candle</div></div>
       </div>
-      <div class="chart-card"><div class="chart-top"><div><div class="chart-title"><strong id="chart-pair">BTC / USD</strong><span id="chart-interval">5m</span><span class="chart-label">CANDLESTICK</span></div><div id="chart-subtitle" class="chart-subtitle">Waiting for price data</div></div><div class="legend"><span><i class="leg-up"></i> EMA 9</span><span><i class="leg-mid"></i> EMA 20</span><span><i class="leg-long"></i> EMA 50</span></div></div><div class="chart-container"><canvas id="chart" role="img" aria-label="Market candlestick chart with exponential moving averages"></canvas><div id="chart-tooltip" class="chart-tooltip" hidden></div></div><div class="chart-bottom"><span>● <span id="updated">Not analyzed</span></span><span>Completed candles only · Auto-check every 45s</span></div></div>
-      <div class="lower-grid"><section class="panel"><div class="panel-head"><div><div class="section-kicker">02 / EXPLAINABILITY</div><h3>Why this signal?</h3></div><span class="chip">8 FACTORS</span></div><div id="votes" class="factor-list"><div class="empty">Select a market to see the analysis.</div></div></section>
-      <section class="panel insight"><div class="panel-head"><div><div class="section-kicker">03 / CONTEXT</div><h3>Market brief</h3></div><span class="chip chip-purple">BENDER CORE</span></div><div id="brief"><p class="muted-copy">Bender will translate technical evidence into an understandable market brief here.</p></div><div class="level-group"><div class="level"><span>20-BAR SUPPORT</span><strong id="support">—</strong></div><div class="level"><span>20-BAR RESISTANCE</span><strong id="resistance">—</strong></div><div class="level"><span>RSI (14)</span><strong id="rsi">—</strong></div></div><div id="warnings" class="warnings"></div></section></div>
-      <div class="disclaimer"><span class="disclaimer-mark">!</span><p><strong>Built for research, not financial advice.</strong> Signals describe how eight rules align on historical price data, not the probability of a profitable trade. Markets can change before the next update. No orders are placed, and no predictive edge has been established.</p></div>
-      <footer><span>BENDER / CHRIS × OMAR</span><span>OBSERVE → ANALYZE → DECIDE</span></footer>
+      <div class="chart-card"><div class="chart-top"><div><div class="chart-title"><strong id="chart-pair">BTC / USD</strong><span id="chart-interval">5m</span><span class="chart-label">PRICE CHART</span></div><div id="chart-subtitle" class="chart-subtitle">Checking the price feed…</div></div><div class="legend"><span><i class="leg-up"></i> EMA 9</span><span><i class="leg-mid"></i> EMA 20</span><span><i class="leg-long"></i> EMA 50</span></div></div><div class="chart-container"><canvas id="chart" role="img" aria-label="Market candlestick chart with exponential moving averages"></canvas><div id="chart-tooltip" class="chart-tooltip" hidden></div></div><div class="chart-bottom"><span>● <span id="updated">Not analyzed</span></span><span>Finished candles only · Refreshes when this page is open</span></div></div>
+      <div class="lower-grid"><section class="panel"><div class="panel-head"><div><div class="section-kicker">02 / SHOW YOUR WORK</div><h3>Why is Bender leaning that way?</h3></div><span class="chip">8 CHECKS</span></div><div id="votes" class="factor-list"><div class="empty">Checking the chart now…</div></div></section>
+      <section class="panel insight"><div class="panel-head"><div><div class="section-kicker">03 / THE BIG PICTURE</div><h3>Here’s the read</h3></div><span class="chip chip-purple">PLAIN ENGLISH</span></div><div id="brief"><p class="muted-copy">Here’s where Bender explains what the chart is doing.</p></div><div class="level-group"><div class="level"><span>RECENT FLOOR (SUPPORT)</span><strong id="support">—</strong></div><div class="level"><span>RECENT CEILING (RESISTANCE)</span><strong id="resistance">—</strong></div><div class="level"><span>MOMENTUM METER (RSI)</span><strong id="rsi">—</strong></div></div><div id="warnings" class="warnings"></div></section></div>
+      <section class="trade-guide"><div class="trade-guide-head"><div><div class="section-kicker">04 / BEFORE YOU PLACE A TRADE</div><h3>Trading on Polymarket?</h3></div><a id="polymarket-link" href="https://polymarket.com" target="_blank" rel="noopener noreferrer">Open Polymarket ↗</a></div>
+        <p id="contract-note">Bender reads the chart; Polymarket decides the winning outcome. Check the contract’s exact rules before you trade.</p>
+        <div class="steps"><div><strong>1</strong><span>Read Bender’s take.</span></div><div><strong>2</strong><span>Check the actual market: price to beat, time left, and odds.</span></div><div><strong>3</strong><span>You decide: Up, Down, or pass.</span></div></div>
+        <div class="trade-foot">Right now this is a chart checker, <strong>not a Polymarket odds calculator</strong>. Matching live contracts and tracking results come next.</div>
+      </section>
+      <div class="disclaimer"><span class="disclaimer-mark">!</span><p><strong>No magic picks.</strong> A bullish chart does not guarantee the next five minutes go up. Bender’s score counts technical signals—not winning odds. Prices can change fast, and nothing here places a trade for you.</p></div>
+      <footer><span>BENDER / CHRIS × OMAR</span><span>CHECK THE CHART → THINK IT THROUGH → YOUR CALL</span></footer>
     </section>
   </main>
 </div>

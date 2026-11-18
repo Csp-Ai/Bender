@@ -1,10 +1,23 @@
-# Bender web terminal
-Production-ready **static frontend and read-only Vercel Node.js API**; the research Python app in the repository root remains independent.
+# Bender — chart check (web)
 
-The UI loads only completed 5/15-minute bars from Kraken, excludes the in-progress bar, and calculates 8 explainable indicators. Auto-check runs every 45 seconds while the page is open. A deterministic synthetic mode is available for testing and always explicitly labeled.
+Bender is a friendly, read-only chart analysis website built by Chris and Omar using experience from Chris’s Gifali work. Focus: **Bitcoin (BTC/USD)** and **SPY (S&P 500 ETF)** only.
 
-Vercel: link the GitHub repository \`Csp-Ai/Bender\` and configure the **Root Directory** to \`site\`; framework = Other. No environment keys or separate build command required. Code from \`site/api/candles.js\` runs as a serverless function.
+- **BTC:** live, completed Kraken 5-minute and 15-minute candles; directional rule alignment, not Polymarket settlement pricing.
+- **SPY:** an optional stock data feed through Alpaca’s authenticated stock-bars API. When not configured, the website explicitly says SPY’s live feed is unavailable, instead of inventing prices.
+- **Practice mode:** visibly fake candles for checking interactions, never live market data.
+- **Human decision:** Bender does not place trades or compute verified Polymarket win probabilities. Users must check a contract’s specific price-to-beat, clock, rules and available price at Polymarket.
 
-This is a **research prototype**. No proven forecasting edge, backtests, trade execution, or guaranteed accuracy. Never treat directional rule alignment as odds. Next steps: check runtime health, out-of-sample evaluations, historical candles, alerts and optional SPY provider.
+## Vercel configuration
 
-The repository has a separate Python Streamlit prototype under \`app.py\`, \`bender/\` and \`tests/\`; don't deploy that source as this web frontend.
+Project source: `site/`. Framework Other. This site can be deployed from the files under `site/` without a frontend build step. BTC needs no keys.
+
+To activate live SPY, set these encrypted server-side environment variables in Vercel, then redeploy:
+
+```
+ALPACA_API_KEY_ID=<from Alpaca dashboard>
+ALPACA_API_SECRET_KEY=<from Alpaca dashboard>
+```
+
+Do not paste secrets into chat or commit them. This endpoint requests IEX stock bars (limited exchange coverage), and uses US regular trading hours. Stock prices do not settle the same way as Bitcoin's Polymarket short-window contracts.
+
+Development notes: GitHub integration may need access to this repository for automatic deployment. The Python research prototype at repository root remains separate.
