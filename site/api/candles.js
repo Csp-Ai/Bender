@@ -30,51 +30,81 @@ async function btc(interval,signal) {
   })).filter(r=>completed(r,interval,Date.now()));
   return {bars,source:"KRAKEN",coverage:"BTC/USD Kraken spot; NOT Polymarket settlement reference"};
 }
-async function spy(interval,signal) {
-  const key=process.env.ALPACA_API_KEY_ID,secret=process.env.ALPACA_API_SECRET_KEY;
-  if(!key||!secret) {
-    const err=new Error("SPY’s stock-price feed isn’t connected yet. Chris will need to add a stock-data connection before Bender can give a real SPY read.");
-    err.code="SPY_FEED_NOT_CONNECTED";err.status=503;throw err;
+async function spyYahoo(interval,signal){
+  const errors=[];
+  for(const host of ["query1.finance.yahoo.com","query2.finance.yahoo.com"]){
+    try{
+      const url=new URL("https://"+host+"/v8/finance/chart/SPY");
+      url.searchParams.set("interval",interval+"m");
+      url.searchParams.set("range","1mo");
+      url.searchParams.set("includePrePost","false");
+      const response=await fetch(url,{signal,headers:{
+        "Accept":"application/json",
+        "User-Agent":"Mozilla/5.0 (compatible; BenderResearch/0.7)",
+        "Cache-Control":"no-cache"
+      }});
+      if(!response.ok)throw new Error("Feed HTTP "+response.status);
+      const json=await response.json();
+      const c=json.chart?.result?.[0],q=c?.indicators?.quote?.[0];
+      if(!c||!Array.isArray(c.timestamp)||!q)throw new Error("Unexpected SPY chart response");
+      const now=Date.now();
+      const bars=c.timestamp.map((t,i)=>({
+        t:Number(t),o:Number(q.open?.[i]),h:Number(q.high?.[i]),
+        l:Number(q.low?.[i]),c:Number(q.close?.[i]),v:Number(q.volume?.[i]||0)
+      })).filter(r=>{
+        if(!completed(r,interval,now))return false;
+        const minute=nyMinutes(r.t*1000);
+        return minute>=570 && minute+interval<=960;
+      }).sort((a,b)=>a.t-b.t);
+      const unique=bars.filter((r,i)=>i===0||r.t!==bars[i-1].t);
+      if(unique.length<210)throw new Error("Insufficient SPY candles");
+      const last=unique[unique.length-1];
+      return {bars:unique.slice(-720),source:"YAHOO_FINANCE",
+        coverage:"SPY public consolidated chart, possibly delayed; latest completed candle "+
+          new Date(last.t*1000).toISOString()+". Not a Polymarket settlement reference."};
+    }catch(e){errors.push(host+" "+String(e.message));}
   }
-  const now=Date.now();
-  const since=new Date(now-(interval===5?14:30)*86400000).toISOString();
-  let token=null;const seen=new Set(), all=[];
-  for(let page=0;page<5;page++) {
+  throw new Error("Public SPY feed did not return usable candles: "+errors.join("; "));
+}
+async function spyAlpaca(interval,signal){
+  const key=process.env.ALPACA_API_KEY_ID,secret=process.env.ALPACA_API_SECRET_KEY;
+  if(!key||!secret)throw new Error("Alpaca not configured");
+  const now=Date.now(),since=new Date(now-(interval===5?14:30)*86400000).toISOString();
+  let token=null;const seen=new Set(),all=[];
+  for(let page=0;page<5;page++){
     const url=new URL("https://data.alpaca.markets/v2/stocks/SPY/bars");
     url.searchParams.set("timeframe",interval+"Min");
-    url.searchParams.set("start",since);
-    url.searchParams.set("end",new Date(now).toISOString());
-    url.searchParams.set("limit","1000");
-    url.searchParams.set("adjustment","raw");
+    url.searchParams.set("start",since);url.searchParams.set("end",new Date(now).toISOString());
+    url.searchParams.set("limit","1000");url.searchParams.set("adjustment","raw");
     url.searchParams.set("feed","iex");
     if(token)url.searchParams.set("page_token",token);
-    const response=await fetch(url,{signal,headers:{
-      "Accept":"application/json",
-      "APCA-API-KEY-ID":key,
-      "APCA-API-SECRET-KEY":secret
-    }});
-    if(!response.ok) {
-      const error=new Error("SPY feed refused the request. Check the Alpaca keys and stock-data permissions.");
-      error.status=502;throw error;
-    }
-    const json=await response.json();
-    if(!Array.isArray(json.bars))throw new Error("Unexpected SPY data");
-    all.push(...json.bars);
-    token=json.next_page_token||null;
-    if(!token||seen.has(token))break;
-    seen.add(token);
+    const response=await fetch(url,{signal,headers:{"Accept":"application/json",
+      "APCA-API-KEY-ID":key,"APCA-API-SECRET-KEY":secret}});
+    if(!response.ok)throw new Error("Alpaca SPY feed error");
+    const body=await response.json();
+    if(!Array.isArray(body.bars))throw new Error("Invalid Alpaca candles");
+    all.push(...body.bars);token=body.next_page_token||null;
+    if(!token||seen.has(token))break;seen.add(token);
   }
   const bars=all.map(r=>({
-    t:Date.parse(r.t)/1000,o:Number(r.o),h:Number(r.h),l:Number(r.l),c:Number(r.c),v:Number(r.v)
-  })).filter(r=>{
-    if(!completed(r,interval,now))return false;
-    const minute=nyMinutes(r.t*1000);
-    return minute>=570&&minute+interval<=960; // Regular NYSE session (09:30-16:00 ET)
-  }).sort((a,b)=>a.t-b.t);
+    t:Date.parse(r.t)/1000,o:Number(r.o),h:Number(r.h),l:Number(r.l),
+    c:Number(r.c),v:Number(r.v)
+  })).filter(r=>completed(r,interval,now)&&nyMinutes(r.t*1000)>=570
+    &&nyMinutes(r.t*1000)+interval<=960).sort((a,b)=>a.t-b.t);
   const unique=bars.filter((r,i)=>i===0||r.t!==bars[i-1].t);
+  if(unique.length<210)throw new Error("Insufficient Alpaca candles");
   return {bars:unique.slice(-720),source:"ALPACA_IEX",
-    coverage:"SPY ETF IEX-only stock bars, regular US hours; not all-exchange SIP data, not contract settlement price"};
+    coverage:"SPY limited IEX-only market data, possibly delayed. Not all US venues or contract settlement price."};
 }
+async function spy(interval,signal){
+  try{return await spyYahoo(interval,signal)}
+  catch(e){
+    if(process.env.ALPACA_API_KEY_ID&&process.env.ALPACA_API_SECRET_KEY)
+      return await spyAlpaca(interval,signal);
+    throw e;
+  }
+}
+
 module.exports=async function handler(req,res){
   if(req.method!=="GET")return res.status(405).json({error:"Only GET is supported"});
   const symbol=String(req.query.symbol||"BTC/USD");
@@ -88,14 +118,14 @@ module.exports=async function handler(req,res){
     const feed=symbol==="SPY"?await spy(interval,controller.signal):await btc(interval,controller.signal);
     if(feed.bars.length<210){
       return res.status(503).json({error:symbol==="SPY"
-        ?"Not enough recent SPY bars from this feed to give a fair chart check. Try later or use Practice mode."
+        ?"A fresh SPY 5m/15m chart could not be verified from the public data feeds. Check the exchange market hours."
         :"Not enough completed BTC candles available. Try again shortly."});
     }
     res.setHeader("Cache-Control","public, s-maxage=25, stale-while-revalidate=30");
     return res.status(200).json({symbol,interval,source:feed.source,coverage:feed.coverage,
       observedAt:new Date().toISOString(),candles:feed.bars});
   }catch(e){
-    if(e.code==="SPY_FEED_NOT_CONNECTED")return res.status(503).json({code:e.code,error:e.message});
+    
     return res.status(502).json({error:"Market prices are unavailable right now. Please try again later."});
   }finally{clearTimeout(timeout);}
 };
