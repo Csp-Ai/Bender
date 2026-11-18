@@ -1,7 +1,7 @@
 "use strict";
 (function () {
   const $ = id => document.getElementById(id);
-  const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1};
+  const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1, requestId:0, controller:null};
   const colors = {up:"#51dbac",down:"#ff7182",ema9:"#bea3ff",ema20:"#ebbd7c",ema50:"#71accb"};
   const fmt = v => Number.isFinite(v) ? "$" + new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "—";
   const shortTime = s => new Date(s * 1000).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
@@ -76,7 +76,9 @@
     return rows;
   }
   async function load(isAuto) {
-    if(state.loading)return;
+    if(state.loading && isAuto)return;
+    const requestId=++state.requestId;
+    if(state.controller)state.controller.abort();
     state.symbol=$("pair").value;state.interval=Number($("interval").value);state.source=$("source").value;
     state.loading=true;
     $("refresh").disabled=true;$("refresh").textContent="Checking…";
@@ -88,7 +90,7 @@
       if(state.source==="demo"){rows=demo();feedName="Fake practice candles";}
       else {
         const url="/api/candles?symbol="+encodeURIComponent(state.symbol)+"&interval="+state.interval;
-        const controller=new AbortController();
+        const controller=new AbortController();state.controller=controller;
         const timeout=setTimeout(()=>controller.abort(),12000);
         try{
           const response=await fetch(url,{signal:controller.signal,cache:"no-store"});
@@ -97,6 +99,7 @@
           rows=json.candles;feedName=state.symbol==="SPY"?"Alpaca · IEX-only ETF bars":"Kraken · BTC spot candles";
         }finally{clearTimeout(timeout);}
       }
+      if(requestId!==state.requestId)return;
       if(!rows.every(r=>[r.t,r.o,r.h,r.l,r.c,r.v].every(Number.isFinite)
         &&r.o>0&&r.h>=Math.max(r.o,r.c,r.l)&&r.l<=Math.min(r.o,r.c,r.h)&&r.v>=0))throw new Error("The feed returned invalid candles");
       if(rows.some((r,i)=>i>0&&r.t<=rows[i-1].t))throw new Error("Candle timestamps are out of order");
@@ -108,11 +111,12 @@
       $("updated").textContent="Analyzed " + new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}) + " local";
       if(!isAuto)document.title=readableBias(state.analysis.bias)+" | Bender";
     }catch(e){
+      if(requestId!==state.requestId)return;
       $("data-status").textContent=state.symbol==="SPY"?"SPY FEED UNAVAILABLE":"PRICE FEED UNAVAILABLE";
       $("error").textContent="Can’t check this chart right now: "+e.message+" Try again, or use Practice (Fake) to explore the layout.";
       $("error").hidden=false;
     }finally{
-      state.loading=false;$("refresh").disabled=false;$("refresh").textContent="↻  Check chart";
+      if(requestId===state.requestId){state.loading=false;state.controller=null;$("refresh").disabled=false;$("refresh").textContent="↻  Check chart";}
     }
   }
   function render(){
