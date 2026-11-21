@@ -30,6 +30,7 @@ jobs:
           node --check site/lib/ema.js
           node --check site/lib/read-journal.js
           node --check site/read-history.js
+          node --check site/mobile-ui.js
           node --check site/api/settlement.js
           node --check site/lib/settlement.js
           node --check site/lib/settlement-journal.js
