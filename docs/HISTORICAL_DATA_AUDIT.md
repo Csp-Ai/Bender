@@ -51,3 +51,9 @@ PMData states its Polymarket US capture began September 10, 2026, but a capture 
 7. Promote no model to production until reproducibility, coverage and validation gates are met.
 
 Never call this dataset complete until all days, pages, identity mappings, source versions and expected contract windows have been audited. No data should be published or redistributed without checking provider rights.
+
+## Limited public API sample (November 20, 2026)
+
+An isolated, read-only audit requested one page of 50 markets with end dates between **2026-11-18T00:00:00Z** and **2026-11-19T00:00:00Z** from each official source. Polymarket US returned 50 records and Gamma International returned 50 records. All sampled `endDate` fields fell on the requested UTC day; **none of the first-page records matched Bender's BTC 5m/15m filters**. Most were unrelated events. This only establishes that the date query can return in-window records. It **does not** establish BTC market absence, earliest BTC history, complete pagination, or historical order-book availability.
+
+Bender v0.9.5 introduces a v2 archive manifest with page-size proof, fully verified SHA-256 raw/normalized inputs and resumable checkpoints. Legacy v1 manifests without page-size evidence are rejected and require explicit, audited migration/recollection; they are not silently overwritten. Data capture has not produced a validated historical BTC outcome sample, a calibrated model, or executable-strategy backtest.

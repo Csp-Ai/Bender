@@ -2,6 +2,8 @@
 const test=require("node:test");
 const assert=require("node:assert/strict");
 const handler=require("../api/contract");
+// Request caches survive between tests in one Node process.
+test.beforeEach(()=>{handler._cache.clear();handler._resetRateLimit();});
 
 function market(now,adjust={}){
   const start=new Date(Math.floor(now/300000)*300000).toISOString();

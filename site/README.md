@@ -124,3 +124,24 @@ Quality gates: `node --test site/tests/*.test.cjs` includes `mobile-ui.test.cjs`
 The browser now hides Polymarket's live contract section while practice candles are active, rejects malformed indicative prices (including values above 100¢) in the *display layer*, and validates exact BTC contract intervals and identifiers. These bugs surfaced in actual headless-browser fault tests and have regression tests. The quick-start QA notes and optional browser tests are in [qa/README.md](qa/README.md); the complete observed results and limits are in [the stress-test report](../docs/STRESS_TEST_V0941.md).
 
 To reproduce with local Chromium support, install Playwright **only for testing** and run `npm run qa:browser`. Default `npm test` remains dependency-free. The current evidence is 63 Node unit tests, 22 Python tests, 5 viewport scenarios and 7 browser fault scenarios passed in an isolated sandbox. No throughput SLA, exchange quote age, Safari app-link validation, or profitable strategy claim is established.
+
+## v0.9.5 reliability branch
+
+Market discovery requires the official BTC Up/Down terms, exact interval, supported **BRTI** index and a published positive price-to-beat. Unfamiliar references fail closed. Quote rendering requires the correct market slug, Polymarket US source, server retrieval time, compatible quote status and valid 0–1 indicative prices. Short-lived per-instance request coalescing (contract pages 1s; BBO/books 0.7s) keeps original source retrieval timestamps and can reduce duplicate requests when the same serverless instance handles them. Upstream 429 Retry-After is capped to a 2–60s cooldown rather than hammering the venue. Neither caching nor quote age certifies exchange publication time.
+
+Bender's 9/20/50/200 EMA scheme, mobile layout, read-only journal and official market handoff remain unchanged. See [the v0.9.5 engineering report](../docs/SPRINT_V095_ENGINEERING.md).
+
+
+## Research Bets: native parlay research lab (v1)
+
+The Bender navigation includes **Research Bets** at \`/research-bets/\`. It is a separate, mobile-responsive research section; the existing BTC and SPY chart/Polymarket flows are unchanged.
+
+- Enter sportsbook-sourced American odds and up to 10 manually researched sports legs.
+- See combined decimal/American odds, theoretical independent-leg implied rate, hypothetical gross payout and net profit.
+- Detect basic structure concerns (multiple selections in one event, five-plus legs, missing evidence/odds source); these are not a calibrated correlation or risk model.
+- Save a draft in this browser's localStorage; no accounts, uploads, server synchronization or placed bets.
+- Copy a factual research brief to investigate injury/lineup, weather, game script, pricing, and contradictory evidence.
+- Open the independently deployed ResearchBets product at https://research-bets.vercel.app/ for its fuller Ticket X-Ray lifecycle. The two apps do not exchange tickets or share authentication.
+- The entered odds are **not a live odds feed**. The mechanically computed implied rate assumes independent outcomes, ignores sportsbook vig and same-game dependence, and is neither a forecast nor a performance claim.
+
+Validation: \`node --test site/tests/research-bets.test.cjs\` from repository root, or \`npm test\` from \`site/\`. Verify route and asset HTTP responses after deploying a Git ref with the \`site/\` project root.

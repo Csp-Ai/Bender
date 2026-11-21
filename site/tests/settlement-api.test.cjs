@@ -19,6 +19,8 @@ test("verifies exact BTC US market terms and rejects market substitution",()=>{
   assert.equal(ok.id,id);assert.equal(ok.target,56123.45);
   assert.equal(validateMarket(detail,slug,"wrong",5,now),null);
   assert.equal(validateMarket(detail,slug,id,15,now),null);
+  assert.equal(ok.indexSymbol,"BRTI");
+  assert.equal(validateMarket({market:{...detail.market,assetPriceTerms:{...terms,indexSymbol:"OTHER"}}},slug,id,5,now),null);
   assert.equal(validateMarket(detail,slug,id,5,Date.parse("2026-11-20T22:04:59Z")),null);
   assert.equal(validateMarket({market:{...detail.market,assetPriceTerms:{...terms,asset:{symbol:"eth"}}}},slug,id,5,now),null);
 });

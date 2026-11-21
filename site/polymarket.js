@@ -12,6 +12,7 @@
     throw new Error("Market quote validation did not load");
   let market=null,marketRequest=null,quoteRequest=null,priceRequest=null,marketCheckedAt=0;
   let generation=0,quoteAt=0,latestQuotes=null,priceUpdatedAt=0,officialAvailable=false,officialStatusAt=0,expiredRefresh=false;
+  let marketRetryAt=0,quoteRetryAt=0;
   const active=()=>$("pair").value==="BTC/USD"&&$("source").value==="live"&&document.visibilityState==="visible";
   const identity=m=>m&&[m.id,m.slug,m.endsAt].join("|");
   // Read-only context for the chart journal. Only market IDs already verified
@@ -68,7 +69,14 @@
   async function loadJson(url,signal){
     const response=await fetch(url,{signal,cache:"no-store"});
     const json=await response.json();
-    if(!response.ok)throw Error("Feed HTTP "+response.status);
+    if(!response.ok){
+      const error=Error("Feed HTTP "+response.status);
+      if(json?.state==="RATE_LIMITED"&&Number.isFinite(json.retryAfterSec)){
+        error.rateLimited=true;
+        error.retryAfterMs=Math.min(60000,Math.max(2000,Math.ceil(json.retryAfterSec*1000)));
+      }
+      throw error;
+    }
     return json;
   }
   async function updatePrice(){
@@ -111,7 +119,7 @@
       clearQuotes("Quote response arrived too late; waiting for a fresh quote.");
       return;
     }
-    const safe=window.BenderQuoteSafety.extract(data);
+    const safe=window.BenderQuoteSafety.extract(data,Date.now(),market?.slug);
     if(!safe.fresh){
       clearQuotes("Quote response is stale or invalid. Waiting for a fresh quote.");
       return;
@@ -154,7 +162,7 @@
     edgeState();
   }
   async function updateQuotes(){
-    if(!active()||!market||quoteRequest)return;
+    if(!active()||!market||quoteRequest||Date.now()<quoteRetryAt)return;
     if(Date.parse(market.endsAt)<=Date.now())return;
     const key=identity(market),currentGeneration=generation;
     const ctrl=new AbortController();quoteRequest=ctrl;
@@ -164,9 +172,14 @@
       if(currentGeneration!==generation||identity(market)!==key)return;
       if(body.slug!==market.slug)throw Error("Wrong quote market");
       showQuotes(body);
+      quoteRetryAt=0;
     }catch(_err){
       if(currentGeneration!==generation||identity(market)!==key)return;
-      if(!quoteAt||Date.now()-quoteAt>12000)clearQuotes("Quote retrieval failed. The contract target remains verified, but buy prices are unavailable.");
+      if(_err?.rateLimited){
+        quoteRetryAt=Date.now()+_err.retryAfterMs;
+        clearQuotes("Polymarket is rate limiting quote requests. Retrying after its cooldown.");
+      }else if(!quoteAt||Date.now()-quoteAt>12000)
+        clearQuotes("Quote retrieval failed. The contract target remains verified, but buy prices are unavailable.");
       else readiness("Rechecking quotes; previously retrieved indicative prices may change.");
     }finally{clearTimeout(timeout);if(quoteRequest===ctrl)quoteRequest=null;}
   }
@@ -184,7 +197,9 @@
     if(!Number.isFinite(start)||!Number.isFinite(end)||start>Date.now()+10000||end<=Date.now()||
        end-start!==interval*60000||
        !/^[A-Za-z0-9_-]{1,90}$/.test(String(m.id||""))||
-       !/^[a-z0-9][a-z0-9-]{3,179}$/.test(String(m.slug||"")))
+       !/^[a-z0-9][a-z0-9-]{3,179}$/.test(String(m.slug||""))||
+       m.indexSymbol!=="BRTI"||m.marketType!=="ASSET_PRICE_MARKET_TYPE_UP_DOWN"||
+       typeof m.target!=="number"||!Number.isFinite(m.target)||m.target<=0)
       return noContract("Contract feed returned invalid market identity or window. Rechecking...");
     const switched=identity(market)!==identity(m);
     if(switched){
@@ -193,7 +208,7 @@
       if(priceRequest){priceRequest.abort();priceRequest=null;}
       quoteAt=0;priceUpdatedAt=0;
     }
-    market=m;marketCheckedAt=Date.parse(data.checkedAt)||Date.now();
+    market=m;marketCheckedAt=Date.parse(data.metadataRetrievedAt)||Date.parse(data.checkedAt)||Date.now();
     // A verified contract can arrive after the first chart snapshot. Attach
     // identity to that old read with a later linkage timestamp, never a quote
     // backdated to the original chart observation.
@@ -239,6 +254,10 @@
       if(!market||force)noContract($("source").value==="demo"?"Practice mode: live contracts are hidden.":"BTC US contracts only; select Bitcoin and Real Prices.");
       return;
     }
+    if(Date.now()<marketRetryAt){
+      if(!market)readiness("Polymarket market discovery is rate limited. Retrying after cooldown.");
+      return;
+    }
     if(marketRequest){if(!force)return;marketRequest.abort();marketRequest=null;}
     if(force)noContract("Finding the current verified BTC contract...");
     const currentGeneration=generation,selectedInterval=Number($("interval").value);
@@ -252,9 +271,14 @@
         return;
       }
       showMarket(body);
+      marketRetryAt=0;
     }catch(_err){
       if(marketRequest!==ctrl||currentGeneration!==generation)return;
-      if(!market)noContract("Contract discovery is delayed. Bender is retrying; the official market link remains available.");
+      if(_err?.rateLimited){
+        marketRetryAt=Date.now()+_err.retryAfterMs;
+        if(!market)noContract("Polymarket is rate limiting market lookups. Retrying after cooldown.");
+        else readiness("Market refresh rate limited. Existing contract ages out normally.");
+      }else if(!market)noContract("Contract discovery is delayed. Bender is retrying; the official market link remains available.");
       else readiness("Contract lookup delayed. Existing contract information is being checked.");
     }finally{clearTimeout(timeout);if(marketRequest===ctrl)marketRequest=null;}
   }

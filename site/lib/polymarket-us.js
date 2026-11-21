@@ -1,6 +1,8 @@
 "use strict";
 const TYPE="ASSET_PRICE_MARKET_TYPE_UP_DOWN";
 const HORIZONS=new Set([5,15]);
+const SUPPORTED_INDEX="BRTI";
+const supportedReference=terms=>terms?.indexSymbol===SUPPORTED_INDEX&&dollars(terms.priceToBeat)!==null;
 const finitePrice=x=>{
   const raw=(x&&typeof x==="object"&&"value" in x)?x.value:x;
   if(raw===null||raw===undefined||raw==="")return null;
@@ -27,7 +29,7 @@ const isBTCUpDown=(m,interval,now)=>{
   const t=m.assetPriceTerms;
   if(!t||t.marketType!==TYPE)return false;
   if(String(t.asset&&t.asset.symbol||"").toLowerCase()!=="btc")return false;
-  if(intervalOf(t.horizon)!==interval)return false;
+  if(intervalOf(t.horizon)!==interval||!supportedReference(t))return false;
   const start=timestamp(t.windowStart),end=timestamp(t.windowEnd);
   if(start===null||end===null||end-start!==interval*60000)return false;
   // An unknown identifier or malformed slug is not a verified market.
@@ -44,7 +46,7 @@ function selectMarket(markets,interval,now){
 function normalizeMarket(m){
   const t=m.assetPriceTerms||{};
   const slug=String(m.slug||"");
-  const index=String(t.indexSymbol||"").slice(0,32);
+  const index=supportedReference(t)?SUPPORTED_INDEX:null;
   const horizon=intervalOf(t.horizon);
   const landing=horizon===15?"https://polymarket.us/category/bitcoin-15m":
     horizon===5?"https://polymarket.us/category/bitcoin-5m":"https://polymarket.us/category/btc";
@@ -98,4 +100,4 @@ function lastTradeContext(data){
     source:"last_trade",isExecutable:false};
 }
 
-module.exports={quotesFromBook,lastTradeContext,TYPE,HORIZONS,finitePrice,dollars,timestamp,intervalOf,isBTCUpDown,selectMarket,normalizeMarket,quotesFromBbo};
+module.exports={SUPPORTED_INDEX,supportedReference,quotesFromBook,lastTradeContext,TYPE,HORIZONS,finitePrice,dollars,timestamp,intervalOf,isBTCUpDown,selectMarket,normalizeMarket,quotesFromBbo};

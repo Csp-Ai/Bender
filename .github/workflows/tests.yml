@@ -15,8 +15,10 @@ jobs:
           cache: 'pip'
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - run: python -m pip install -r requirements.txt
+      - name: Verify installed Python dependencies
+        run: python -m pip check
       - name: Python engine and historical research tests
         run: python -m unittest discover -s tests -v
       - name: JavaScript API and market UI utility tests
@@ -29,6 +31,8 @@ jobs:
           node --check site/api/quotes.js
           node --check site/lib/ema.js
           node --check site/lib/quote-safety.js
+          node --check site/lib/request-coalescer.js
+          node --check site/lib/upstream-rate-limit.js
           node --check site/qa/browser-layout.cjs
           node --check site/qa/browser-faults.cjs
           node --check site/lib/read-journal.js

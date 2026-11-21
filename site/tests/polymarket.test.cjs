@@ -61,3 +61,12 @@ test("market lookup rejects missing or malformed identifiers before verification
   assert.equal(selectMarket([sample("5m",{slug:""})],5,NOW),null);
   assert.equal(selectMarket([sample("5m",{slug:"../untrusted-market"})],5,NOW),null);
 });
+
+test("unfamiliar or absent settlement index and missing price target are never verified",()=>{
+  for(const index of ["", "CHAINLINK", "BRTI2", null]){
+    const m=sample("5m",{assetPriceTerms:{...sample().assetPriceTerms,indexSymbol:index}});
+    assert.equal(selectMarket([m],5,NOW),null);
+  }
+  const noTarget=sample("5m",{assetPriceTerms:{...sample().assetPriceTerms,priceToBeat:null}});
+  assert.equal(selectMarket([noTarget],5,NOW),null);
+});

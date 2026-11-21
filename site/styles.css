@@ -247,3 +247,7 @@
 @media(prefers-reduced-motion:reduce){
  .mobile-jump-nav a,.timeframe-button{transition:none}
 }
+
+/* Research Bets as fourth mobile destination without obscuring existing live/chart controls. */
+@media(max-width:850px){.mobile-jump-nav{grid-template-columns:repeat(4,minmax(0,1fr))}.mobile-jump-nav a{font-size:10px;line-height:1.35;text-align:center}}
+@media(max-width:370px){.mobile-jump-nav{padding:6px 7px;gap:2px}.mobile-jump-nav a{font-size:9px;padding:6px 2px}}

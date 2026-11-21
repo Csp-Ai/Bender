@@ -1,40 +1,38 @@
 "use strict";
-const test=require("node:test");
-const assert=require("node:assert/strict");
+const test=require("node:test"),assert=require("node:assert/strict");
 const {price,extract}=require("../lib/quote-safety");
-const now=Date.now();
-const snapshot=(offers={},last={})=>({
-  checkedAt:new Date(now).toISOString(),quotes:offers,indicative:last
+const NOW=Date.now(),SLUG="btc-updown-5m-good";
+const snapshot=(offers={upAsk:.57,downAsk:.44},extra={})=>({
+  slug:SLUG,source:"Polymarket US",timestampSemantics:"server_retrieval",
+  available:true,state:"QUOTE_AVAILABLE",checkedAt:new Date(NOW).toISOString(),
+  quotes:{source:"best_bid_offer",...offers},indicative:null,...extra
 });
-test("accepts only finite contract prices strictly between 0 and 1",()=>{
-  for(const n of [.01,.57,.99])assert.equal(price(n),n);
-  for(const n of [0,1,1.4,-.3,NaN,Infinity,-Infinity,null,undefined,".57",{},true])
-    assert.equal(price(n),null);
+test("only positive finite prices below 1 can render",()=>{
+ for(const n of [.01,.57,.99])assert.equal(price(n),n);
+ for(const n of [0,1,1.4,-.3,NaN,Infinity,-Infinity,null,undefined,".57",{},true])assert.equal(price(n),null);
 });
-test("normalizes independent valid up/down asks",()=>{
-  assert.deepEqual(extract(snapshot({upAsk:.57,downAsk:.44}),now),{
-    fresh:true,upAsk:.57,downAsk:.44,upLast:null,downLast:null
-  });
+test("accepts matched, sourced, fresh BBO or book",()=>{
+ assert.deepEqual(extract(snapshot(),NOW,SLUG),{fresh:true,upAsk:.57,downAsk:.44,upLast:null,downLast:null});
+ assert.equal(extract(snapshot({upAsk:.56,downAsk:null},{quotes:{source:"order_book",upAsk:.56,downAsk:null}}),NOW,SLUG).upAsk,.56);
 });
-test("malformed prices cannot appear as buy offers",()=>{
-  const parsed=extract(snapshot({upAsk:1.4,downAsk:-.4},{upLast:1.2,downLast:0}),now);
-  assert.equal(parsed.fresh,true);
-  assert.equal(parsed.upAsk,null);
-  assert.equal(parsed.downAsk,null);
-  assert.equal(parsed.upLast,null);
-  assert.equal(parsed.downLast,null);
+test("contradictory availability, state and market fail closed",()=>{
+ const bad=[
+ {available:false},{state:"AWAITING_QUOTE"},{slug:"btc-updown-5m-another"},
+ {source:"Kraken"},{timestampSemantics:"exchange_timestamp"},{quotes:{source:"untrusted",upAsk:.57}},
+ {quotes:{source:"best_bid_offer",upAsk:1.4,downAsk:.42}},
+ {quotes:{source:"best_bid_offer",upAsk:-.4,downAsk:.42}},
+ {quotes:{source:"best_bid_offer",upAsk:.57,downAsk:"0.44"}},
+ {quotes:null},{checkedAt:new Date(NOW-50000).toISOString()},{checkedAt:new Date(NOW+30000).toISOString()},
+ {checkedAt:"unparseable"}
+ ];
+ for(const change of bad)assert.equal(extract(snapshot({},change),NOW,SLUG).fresh,false,JSON.stringify(change));
+ assert.equal(extract(snapshot(),NOW,"btc-updown-5m-wrong").fresh,false);
 });
-test("rejects stale or future quote responses as a whole",()=>{
-  const q=snapshot({upAsk:.58,downAsk:.43});
-  assert.equal(extract({...q,checkedAt:new Date(now-30000).toISOString()},now).fresh,false);
-  assert.equal(extract({...q,checkedAt:new Date(now+30000).toISOString()},now).fresh,false);
-  assert.equal(extract({...q,checkedAt:"not-a-date"},now).fresh,false);
-  assert.equal(extract({...q,checkedAt:null},now).fresh,false);
-});
-test("accepts only validated last trade context when actual asks are absent",()=>{
-  const q=extract(snapshot({}, {upLast:.6,downLast:.4}),now);
-  assert.equal(q.upAsk,null);
-  assert.equal(q.downAsk,null);
-  assert.equal(q.upLast,.6);
-  assert.equal(q.downLast,.4);
+test("pending book never presents executable-looking offers",()=>{
+ const pending=snapshot(null,{available:false,state:"AWAITING_QUOTE",quotes:null,
+  indicative:{source:"last_trade",isExecutable:false,upLast:.6,downLast:.4}});
+ const x=extract(pending,NOW,SLUG);
+ assert.deepEqual(x,{fresh:true,upAsk:null,downAsk:null,upLast:.6,downLast:.4});
+ assert.equal(extract({...pending,quotes:{upAsk:.57}},NOW,SLUG).fresh,false);
+ assert.equal(extract({...pending,indicative:{source:"last_trade",isExecutable:true,upLast:.6}},NOW,SLUG).upLast,null);
 });
