@@ -109,6 +109,7 @@ def probability_metrics(observations):
     """
     losses = []
     correct = 0
+    non_ties = 0
     for observation in observations:
         if not isinstance(observation, dict):
             raise ValueError("Invalid prediction record")
@@ -128,13 +129,15 @@ def probability_metrics(observations):
         clipped = min(1-eps, max(eps, probability))
         log_loss = -(label * math.log(clipped) + (1-label) * math.log(1-clipped))
         losses.append(((probability-label)**2, log_loss))
-        correct += int((probability > 0.5) == bool(label)) if probability != 0.5 else 0
+        if probability != 0.5:
+            non_ties += 1
+            correct += int((probability > 0.5) == bool(label))
     if not losses:
         return {"sample_size": 0, "brier_score": None, "log_loss": None, "accuracy_excluding_ties": None}
     return {"sample_size": len(losses),
             "brier_score": sum(x[0] for x in losses)/len(losses),
             "log_loss": sum(x[1] for x in losses)/len(losses),
-            "accuracy_excluding_ties": correct/len(losses),
+            "accuracy_excluding_ties": correct/non_ties if non_ties else None,
             "disclosure": "Descriptive historical model metrics, not a verified trading edge."}
 
 
