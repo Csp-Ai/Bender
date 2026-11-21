@@ -9,15 +9,15 @@ The ResearchBets preview branch sets `basePath: '/research-bets'` only on its ex
 ## Implemented
 
 - Screenshot-first first action links to native reviewed, multi-image upload, relying on the previous screenshot-integrity branch rather than a second uploader.
-- Explore Today's Games retrieves existing canonical `/api/today` data for NBA, NFL, NHL, MLB and UFC. Browser local timezone and local calendar date are passed explicitly; kickoff UTC timestamp is now preserved separately from existing localized display label.
-- Only fresh provider-backed `mode=live` responses and same-local-date upcoming/live events are surfaced as verified. Cache/demo/unsupported statuses are not presented as live. Incomplete or unavailable provider coverage produces an explicit unavailable state.
+- Explore Today's Games retrieves the new schedule-only `/api/sports/slate` adapter for NBA, NFL, NHL, MLB and UFC. It calls ResearchBets' existing canonical `oddsProvider.fetchEvents` without requiring a full player-prop model scan. Browser local timezone and local calendar date are passed explicitly; kickoff UTC timestamp is now preserved separately from existing localized display label.
+- Only fresh, provider-backed `schedule_only` events from the user's local date are displayed. The dashboard differentiates upcoming from started-by-kickoff and does not claim verified scores, active clocks or outcomes. Incomplete coverage is explicit.
 - Existing NFL-only market-supported ideas remain connected to canonical DraftSlipStore and X-Ray. Other sports currently offer provider-backed game research **only**, not a priced multi-leg idea generator.
 - Bender's static BTC/SPY assets and local APIs are not replaced. Legacy manual parlay math is not loaded by the new sports route.
 
 ## Remaining work and release gates
 
-1. Run real Vercel build and linked automated test suite for both repos. CI success and complete Next.js `npm run check` are not established by an unverified preview.
-2. Verify Bender proxy routes, static Next.js assets, POST screenshot/parse APIs, session cookies, native navigation, and original BTC/SPY endpoints in a deployed preview. Verify the ResearchBets preview is accessible through the Bender reverse proxy despite deployment protection.
+1. Vercel reports `api-deployments-free-per-day` HTTP 402 after more than 100 deployments. The original RB preview builds failed JSX lint; corrections are committed but no new successful build has been observed. Bender GitHub Actions fails before a runner gets steps or logs. Owner-side platform limits must be resolved before final QA.
+2. Provide a stable **publicly accessible** ResearchBets integration zone for Bender; the current Vercel feature preview requires SSO, which a public Bender rewrite cannot satisfy. A separate production zone project with `RESEARCHBETS_BENDER_MOUNT=1` avoids breaking standalone ResearchBets and preserves existing preview protection. Then verify Bender proxy routes, static Next.js assets, POST screenshot/parse APIs, session cookies, native navigation, and original BTC/SPY endpoints in a deployed preview. Verify the ResearchBets preview is accessible through the Bender reverse proxy despite deployment protection.
 3. Exercise real anonymized FanDuel, DraftKings, Kalshi and PrizePicks multi-image screenshots, omitted-selection count guards, and correction-before-X-Ray. Test 390×844 and narrow mobile browsers.
 4. Expand source-authorized league and market coverage, validated live status/scores (the existing `TodayGame` currently only supports upcoming/live), and multi-league idea generation through canonical X-Ray. Do not fabricate markets, quotes, or probabilities.
 5. Provider licensing, injuries, rates and cache-freshness audits; no automated wagers. Existing screenshot draft PR must pass its own checks.
