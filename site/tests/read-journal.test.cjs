@@ -1,7 +1,7 @@
 "use strict";
 const test=require("node:test");
 const assert=require("node:assert/strict");
-const {clean,record,read,clear,csv,KEY,LIMIT}=require("../lib/read-journal");
+const {clean,record,read,linkMarket,clear,csv,KEY,LIMIT}=require("../lib/read-journal");
 
 function store(){
   const values=new Map();
@@ -84,6 +84,31 @@ test("includes verified contract identity but never stale or future quotes",()=>
   assert.equal(invalid.contract,null);
   const wrong=clean({...r,contract:{...base,intervalMinutes:15}});
   assert.equal(wrong.contract,null);
+});
+test("late verified contract linking does not backdate quotes or chart observations",()=>{
+  const db=store(),now=Date.now();
+  const observed=new Date(now-40000).toISOString();
+  const entry=snapshot({
+    observedAt:observed,
+    candleClosedAt:new Date(now-80000).toISOString()
+  });
+  assert.equal(record(entry,db).saved,true);
+  const context={venue:"us",id:"2743142",slug:"cpc-btc-updown-5m-known",
+    intervalMinutes:5,target:56223.45,
+    startsAt:new Date(now-120000).toISOString(),
+    endsAt:new Date(now+180000).toISOString(),
+    upAsk:.58,downAsk:.43,quoteCheckedAt:new Date(now).toISOString()};
+  const linked=linkMarket(context,db,new Date(now).toISOString());
+  assert.equal(linked.linked,1);
+  const recovered=read(db)[0];
+  assert.equal(recovered.observedAt,observed);
+  assert.equal(recovered.score,4);
+  assert.equal(recovered.contract.id,"2743142");
+  assert.equal(recovered.contract.linkedAt,new Date(now).toISOString());
+  assert.equal(recovered.contract.quote,undefined);
+  assert.equal(linkMarket(context,db,new Date(now).toISOString()).linked,0);
+  assert.equal(linkMarket({...context,target:0},db,new Date(now).toISOString()).linked,0);
+  assert.equal(read(db).length,1);
 });
 test("CSV is explicit about unverified outcomes and contains only validated rows",()=>{
   const r=clean(snapshot());
