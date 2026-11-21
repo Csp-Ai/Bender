@@ -47,3 +47,17 @@ test("normalizes rolling BTC routes to durable official category pages",()=>{
   assert.equal(fifteen.url,"https://polymarket.us/category/bitcoin-15m");
   assert.ok(!five.url.includes("/event/"));
 });
+
+test("does not verify a BTC market with a shortened or inconsistent window",()=>{
+  const short=sample("5m",{assetPriceTerms:{...sample().assetPriceTerms,windowEnd:"2026-11-18T05:53:00Z"}});
+  assert.equal(selectMarket([short],5,NOW),null);
+  const long=sample("5m",{assetPriceTerms:{...sample().assetPriceTerms,windowEnd:"2026-11-18T06:05:00Z"}});
+  assert.equal(selectMarket([long],5,NOW),null);
+  const backward=sample("5m",{assetPriceTerms:{...sample().assetPriceTerms,windowEnd:"2026-11-18T05:49:00Z"}});
+  assert.equal(selectMarket([backward],5,NOW),null);
+});
+test("market lookup rejects missing or malformed identifiers before verification",()=>{
+  assert.equal(selectMarket([sample("5m",{id:""})],5,NOW),null);
+  assert.equal(selectMarket([sample("5m",{slug:""})],5,NOW),null);
+  assert.equal(selectMarket([sample("5m",{slug:"../untrusted-market"})],5,NOW),null);
+});
