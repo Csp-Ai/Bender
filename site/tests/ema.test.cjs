@@ -17,11 +17,15 @@ test("EMA uses previous result and does not peek into future closes",()=>{
   assert.ok(Math.abs(calculated[2]-16.666666666666668)<1e-10);
   assert.deepEqual(series(prices.slice(0,4),2),calculated.slice(0,4));
 });
+test("signed MACD momentum can be EMA-smoothed",()=>{
+  const result=series([-3,-1,0,2],9);
+  assert.deepEqual(result,[-3,-2.6,-2.08,-1.264]);
+});
 test("constant price has constant EMA for every LFGI period",()=>{
   for(const span of [9,20,50,200])assert.ok(series(Array(320).fill(100),span).every(v=>v===100));
 });
 test("invalid prices and invalid EMA periods fail closed",()=>{
-  for(const values of [[],[1,NaN],[0,2],[-2,5],[1,"2"],null])
+  for(const values of [[],[1,NaN],[Infinity,2],[1,"2"],null])
     assert.throws(()=>series(values,9),TypeError);
   for(const span of [0,-1,2.5,"9",null])assert.throws(()=>series([1,2],span),TypeError);
 });
