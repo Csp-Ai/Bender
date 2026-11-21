@@ -5,10 +5,25 @@ on:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - run: python -m pip install -r requirements.txt
-      - run: python -m unittest discover -s tests -v
+      - name: Python engine and historical research tests
+        run: python -m unittest discover -s tests -v
+      - name: JavaScript API and market UI utility tests
+        run: node --test site/tests/*.test.cjs
+      - name: JavaScript syntax checks
+        run: |
+          node --check site/app.js
+          node --check site/polymarket.js
+          node --check site/api/contract.js
+          node --check site/api/quotes.js
