@@ -65,3 +65,16 @@ test("Bender exposes ResearchBets screenshot-first handoff without embedding or 
   assert.ok(!entry.includes("<iframe"));
   assert.ok(!entry.includes("research-bets/math.js"));
 });
+
+test("ResearchBets preview links use paired branch while production keeps the stable canonical domain", () => {
+  const { originForHostname } = require("../research-bets/handoff.js");
+  assert.equal(originForHostname("bender-one-nu.vercel.app"), "https://research-bets.vercel.app");
+  assert.equal(originForHostname("benderbtc.vercel.app"), "https://research-bets.vercel.app");
+  assert.equal(originForHostname("bender-christopher-s-ponces-projects.vercel.app"), "https://research-bets.vercel.app");
+  assert.equal(originForHostname("localhost"), "https://research-bets.vercel.app");
+  assert.equal(originForHostname("bender-7tsi3zf5z-christopher-s-ponces-projects.vercel.app"), "https://research-bets-git-feat-ben-b4e1c2-christopher-s-ponces-projects.vercel.app");
+  const html = fs.readFileSync(path.join(__dirname, "../research-bets/index.html"), "utf8");
+  assert.ok(html.includes('data-rb-destination'));
+  assert.ok(html.includes('/research-bets/handoff.js'));
+  assert.ok(html.includes('id="rb-destination-domain"'));
+});
