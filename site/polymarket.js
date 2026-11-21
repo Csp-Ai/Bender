@@ -224,7 +224,8 @@
     if(priceUpdatedAt&&Date.now()-priceUpdatedAt>20000&&sec>0)referenceReset("Spot price aged out. Rechecking.");
   }
   async function refreshContracts(force=false){
-    $("poly-panel").hidden=$("pair").value==="SPY";
+    // Never put live contract actions beside simulated/practice candles.
+    $("poly-panel").hidden=$("pair").value!=="BTC/USD"||$("source").value!=="live";
     links();
     if(!active()){
       if(!market||force)noContract($("source").value==="demo"?"Practice mode: live contracts are hidden.":"BTC US contracts only; select Bitcoin and Real Prices.");
