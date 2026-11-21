@@ -2,7 +2,7 @@
 (function () {
   const $ = id => document.getElementById(id);
   const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1, requestId:0, controller:null, lastCheckedAt:0, lastClosedAt:0, feedName:""};
-  const colors = {up:"#51dbac",down:"#ff7182",ema9:"#75B9FF",ema20:"#E5C478",ema50:"#D0E8FF"};
+  const colors = {up:"#51dbac",down:"#ff7182",ema9:window.BenderEma.PALETTE[9],ema20:window.BenderEma.PALETTE[20],ema50:window.BenderEma.PALETTE[50],ema200:window.BenderEma.PALETTE[200]};
   const fmt = v => Number.isFinite(v) ? "$" + new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "-";
   const shortTime = s => new Date(s * 1000).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   const dirName = d => d > 0 ? "UP" : d < 0 ? "DOWN" : "MIXED";
@@ -10,6 +10,7 @@
   const dirClass = d => d > 0 ? "bull" : d < 0 ? "bear" : "neutral";
   const timeUtil = window.BenderCandleTime;
   if(!timeUtil||typeof timeUtil.assess!=="function")throw new Error("Candle freshness checks did not load");
+  if(!window.BenderEma||typeof window.BenderEma.series!=="function")throw new Error("LFGI moving-average calculations did not load");
   const localTime = timestamp => new Date(timestamp).toLocaleString(undefined,{
     month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"
   });
@@ -60,11 +61,7 @@
     }
   }
 
-  function emaSeries(values, span) {
-    let last = values[0];
-    const alpha = 2/(span+1);
-    return values.map((v,i) => { if (i) last = (v-last)*alpha+last; return last; });
-  }
+  const emaSeries=(values,span)=>window.BenderEma.series(values,span);
   function rsi14(values) {
     let gain=0, loss=0;
     for(let i=1;i<=14;i++){const d=values[i]-values[i-1];gain+=Math.max(d,0);loss+=Math.max(-d,0);}
@@ -111,7 +108,7 @@
     if (time.status==="FUTURE"||time.status==="INVALID") warnings.push("Candle timestamps could not be verified.");
     if (rows.slice(-20).some(x=>x.v===0)) warnings.push("Zero-volume candles can distort indicator readings.");
     if (state.source==="demo") warnings.push("Simulated candles: not real prices, not actionable signals.");
-    return {score,bias,votes,support,resistance,rsi,e9,e20,e50,age,warnings,last};
+    return {score,bias,votes,support,resistance,rsi,e9,e20,e50,e200,age,warnings,last};
   }
   function demo() {
     const count=320,interval=state.interval;
@@ -240,7 +237,10 @@
     const start=Math.max(0,n-100), data=state.data.slice(start);
     const left=16,right=w<500?62:75,top=21,bottom=32;
     const plotW=w-left-right,plotH=h-top-bottom;
-    const extentMin=Math.min(...data.map(x=>x.l)),extentMax=Math.max(...data.map(x=>x.h));
+    // Include every visible LFGI EMA in the price range; a 200 EMA may
+    // sit beyond the recent candle highs/lows and must not disappear.
+    const overlayValues=[a.e9,a.e20,a.e50,a.e200].flatMap(values=>values.slice(start));
+    const extentMin=Math.min(...data.map(x=>x.l),...overlayValues),extentMax=Math.max(...data.map(x=>x.h),...overlayValues);
     const pad=Math.max(0.0001,(extentMax-extentMin)*.11);
     const ymin=extentMin-pad,ymax=extentMax+pad;
     const y=p=>top+(ymax-p)/(ymax-ymin)*plotH;
@@ -269,7 +269,7 @@
       const yO=y(r.o),yC=y(r.c);
       ctx.fillRect(xp-candleWidth/2,Math.min(yO,yC),candleWidth,Math.max(1,Math.abs(yC-yO)));
     });
-    [[a.e9,colors.ema9],[a.e20,colors.ema20],[a.e50,colors.ema50]].forEach(([series,color])=>{
+    [[a.e9,colors.ema9],[a.e20,colors.ema20],[a.e50,colors.ema50],[a.e200,colors.ema200]].forEach(([series,color])=>{
       ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=1.5;
       for(let i=0;i<data.length;i++){const xp=x(i),yp=y(series[start+i]);if(i===0)ctx.moveTo(xp,yp);else ctx.lineTo(xp,yp);}
       ctx.stroke();
