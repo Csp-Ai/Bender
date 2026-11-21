@@ -21,8 +21,9 @@
     $("history-export").disabled=items.length===0;
     $("history-clear").disabled=items.length===0;
     const eligible=items.filter(item=>item.contract&&Date.parse(item.contract.endsAt)<=Date.now());
-    $("history-verify").disabled=eligible.length===0;
-    $("history-checkable").textContent=eligible.length+" historical chart reads with verified US contract context";
+    const unchecked=eligible.filter(item=>!settlements.forRead(item));
+    $("history-verify").disabled=busy||unchecked.length===0;
+    $("history-checkable").textContent=eligible.length+" historical reads with verified US contract identity, "+unchecked.length+" awaiting outcome verification";
     const list=$("history-list");list.replaceChildren();
     if(!items.length){
       list.append(node("p","history-empty","No saved reads yet. Bender starts recording fresh, completed live chart observations in this browser after you open the site."));
