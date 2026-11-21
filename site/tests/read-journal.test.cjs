@@ -73,6 +73,11 @@ test("includes verified contract identity but never stale or future quotes",()=>
   assert.equal(ok.contract.id,"2739886");
   assert.equal(ok.contract.quote.upAsk,0.56);
   assert.equal(ok.contract.quote.downAsk,0.46);
+  const localDb=store();
+  assert.equal(record({...r,contract:base},localDb).saved,true);
+  const restored=read(localDb)[0];
+  assert.equal(restored.contract.quote.upAsk,0.56);
+  assert.equal(restored.contract.quote.downAsk,0.46);
   const stale=clean({...r,contract:{...base,quoteCheckedAt:new Date(now-30000).toISOString()}});
   assert.equal(stale.contract.quote,undefined);
   const invalid=clean({...r,contract:{...base,id:"=IMPORTXML('x')"}});
