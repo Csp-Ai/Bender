@@ -43,20 +43,20 @@
             <div class="section-kicker">01 / START WITH YOUR TICKET</div>
             <h2>Upload Your Parlay</h2>
             <p class="rb-help">Tap below to open ResearchBets' secure ingestion screen, then select a screenshot from your phone. OCR runs there and you can inspect or correct its findings before X-Ray.</p>
-            <a class="rb-primary rb-entry-primary" href="https://research-bets.vercel.app/ingest?entry=bender" rel="noopener noreferrer">Upload Your Parlay <span aria-hidden="true">↗</span></a>
-            <p class="rb-handoff-note">You will continue at <strong>research-bets.vercel.app</strong>. This is an explicit handoff, not an embedded screenshot uploader. No image or betting data is passed in the link.</p>
+            <a class="rb-primary rb-entry-primary" href="https://research-bets.vercel.app/ingest?entry=bender" data-rb-destination rel="noopener noreferrer">Upload Your Parlay <span aria-hidden="true">↗</span></a>
+            <p class="rb-handoff-note">You will continue at <strong id="rb-destination-domain">research-bets.vercel.app</strong>. This is an explicit handoff, not an embedded screenshot uploader. No image or betting data is passed in the link.</p>
             <div class="rb-divider"></div>
             <h3>Other ways to start</h3>
             <div class="rb-entry-options">
-              <a class="rb-secondary" href="https://research-bets.vercel.app/ingest?entry=bender" rel="noopener noreferrer">Paste ticket text</a>
-              <a class="rb-secondary" href="https://research-bets.vercel.app/slip" rel="noopener noreferrer">Build manually</a>
+              <a class="rb-secondary" href="https://research-bets.vercel.app/ingest?entry=bender" data-rb-destination rel="noopener noreferrer">Paste ticket text</a>
+              <a class="rb-secondary" href="https://research-bets.vercel.app/slip" data-rb-destination rel="noopener noreferrer">Build manually</a>
             </div>
           </section>
           <section class="rb-panel">
             <div class="section-kicker">02 / UNDERSTAND THE RESULT</div>
             <h2>Ticket X-Ray</h2>
             <p class="rb-help">ResearchBets evaluates ticket-wide dependencies, same-game pressure, repeated players, threshold demands and missing evidence. A structural warning is not a calibrated probability.</p>
-            <a class="rb-outline-link" href="https://research-bets.vercel.app/stress-test" rel="noopener noreferrer">Open Ticket X-Ray</a>
+            <a class="rb-outline-link" href="https://research-bets.vercel.app/stress-test" data-rb-destination rel="noopener noreferrer">Open Ticket X-Ray</a>
           </section>
         </div>
         <div class="rb-right">
@@ -69,7 +69,7 @@
               <li><strong>Ticket Pulse</strong><span>Monitor placed tickets where evidence permits</span></li>
               <li><strong>Ticket Autopsy + Memory</strong><span>Review verified outcomes only</span></li>
             </ol>
-            <a class="rb-outline-link" href="https://research-bets.vercel.app/" rel="noopener noreferrer">Explore ResearchBets</a>
+            <a class="rb-outline-link" href="https://research-bets.vercel.app/" data-rb-destination rel="noopener noreferrer">Explore ResearchBets</a>
           </section>
           <section class="rb-panel rb-limitations">
             <div class="section-kicker">INTEGRATION STATUS</div>
@@ -83,5 +83,6 @@
     </section>
   </main>
 </div>
+  <script defer src="/research-bets/handoff.js"></script>
 </body>
 </html>
