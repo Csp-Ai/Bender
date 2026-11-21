@@ -108,3 +108,13 @@ Official outcome evidence is saved separately from the original chart observatio
 This is a **manual, read-only, local-device feature**. Up to eight distinct eligible unverified market IDs are checked per click. An upstream 404 often means an outcome is not yet published; Bender displays "awaiting settlement" and permits retry rather than inferring a winner. No cross-device synchronization, user-specific bets, or historical settlement time are asserted.
 
 The Vercel preview build now runs the browser-side Node test suite using the site's `package.json`; `site/vercel.json` preserves the static root and serverless functions. The Python unit suite and iPhone end-to-end checks still need independent verification.
+
+## v0.9.4 — Omar mobile workflow consolidation
+
+The mobile first view now prioritizes **verified live contract → Bender Quick Read → 9/20/50/200 EMA chart**. It removes the promotional hero on narrow screens and adds a sticky three-section Live/Chart/Past Reads navigation (all sections are still visible on scroll). The 5m/15m touch toggle updates the existing native interval select through a real `change` event, so the chart and Polymarket contract code retain their existing refresh and timeframe validation. The native select remains on desktop and as the authoritative value for all API requests.
+
+Mobile data-mode controls are collapsed under "Data options" but automatically label PRACTICE mode clearly; the existing simulated data warning is retained. The main contract card has a **single** open-Polymarket link; source rules, quote caveats, and the app-home fallback are available via a small disclosure section. SPY has its own browse-only Polymarket link because a specific SPY contract is not verified. Stale/unavailable quote states and the concise "no verified trading edge" note are retained rather than hiding critical market limitations.
+
+Past Reads, the eight-factor breakdown, research journal, verified settlement checks, chart-data sources, and export remain intact, with no changes to the model or inferred probabilities. Desktop retains its original introductory section, asset selection, dropdowns, and chart layout.
+
+Quality gates: `node --test site/tests/*.test.cjs` includes `mobile-ui.test.cjs` checks for event compatibility, practice toggle accessibility, fragment navigation, and single handoff. `node --check site/mobile-ui.js` runs in GitHub Actions. Validate the production-sized viewport and the actual Polymarket app handoff with Omar before promoting this draft PR.
