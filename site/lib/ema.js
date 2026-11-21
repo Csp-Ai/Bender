@@ -15,8 +15,8 @@
   function series(values,period){
     if(!Array.isArray(values)||values.length===0||!Number.isInteger(period)||period<1)
       throw new TypeError("EMA requires at least one value and a positive integer period.");
-    if(!values.every(v=>typeof v==="number"&&Number.isFinite(v)&&v>0))
-      throw new TypeError("EMA values must be finite, positive prices.");
+    if(!values.every(v=>typeof v==="number"&&Number.isFinite(v)))
+      throw new TypeError("EMA values must be finite numbers (signed momentum series are allowed).");
     // Preserve existing chart and rule-score behavior: first close seeds the EMA.
     const alpha=2/(period+1);
     let last=values[0];
