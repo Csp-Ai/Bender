@@ -85,3 +85,11 @@
 - [ ] Run chronological holdout models and calibration; no modeled probabilities in production until validated
 - [ ] Resolve failing GitHub Actions runner/workflow environment; current job results fail without accessible step logs
 - [ ] Review and merge PR, then verify production deployment and Omar's iOS behavior
+
+## v0.9.1 old LFGI chart alignment (review branch)
+- [x] 9 EMA green, 20 EMA yellow, 50 EMA orange, 200 EMA red on price chart
+- [x] Show 200 EMA already calculated by the long-term structure vote
+- [x] Keep EMA smoothing compatible with signed MACD histograms and test it
+- [x] Four-item legend wraps on narrow phones, without replacing candlestick direction colors
+- [ ] Review actual chart readability on Omar's iPhone in a live five- and fifteen-minute session
+- [ ] Evaluate independent LFGI overlays (VWAP bands, pivots, support/resistance) in later PRs without overcrowding the live screen
