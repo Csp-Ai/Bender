@@ -8,6 +8,8 @@
   const money=x=>Number.isFinite(x)?(x*100).toFixed(1).replace(/\.0$/,"")+"¢":"Unavailable";
   const clock=x=>new Date(x).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});
   const validAt=x=>Number.isFinite(Date.parse(x))&&Date.parse(x)<=Date.now()+5000;
+  if(!window.BenderQuoteSafety||typeof window.BenderQuoteSafety.extract!=="function")
+    throw new Error("Market quote validation did not load");
   let market=null,marketRequest=null,quoteRequest=null,priceRequest=null,marketCheckedAt=0;
   let generation=0,quoteAt=0,latestQuotes=null,priceUpdatedAt=0,officialAvailable=false,officialStatusAt=0,expiredRefresh=false;
   const active=()=>$("pair").value==="BTC/USD"&&$("source").value==="live"&&document.visibilityState==="visible";
@@ -109,11 +111,14 @@
       clearQuotes("Quote response arrived too late; waiting for a fresh quote.");
       return;
     }
-    const q=data.quotes||{},last=data.indicative||{};
-    const up=Number.isFinite(q.upAsk)?q.upAsk:null;
-    const down=Number.isFinite(q.downAsk)?q.downAsk:null;
+    const safe=window.BenderQuoteSafety.extract(data);
+    if(!safe.fresh){
+      clearQuotes("Quote response is stale or invalid. Waiting for a fresh quote.");
+      return;
+    }
+    const up=safe.upAsk,down=safe.downAsk;
     const hasQuote=up!==null||down!==null;
-    const hasLast=Number.isFinite(last.upLast);
+    const hasLast=safe.upLast!==null;
     if(hasQuote){
       $("poly-up-label").textContent="BUY UP";
       $("poly-down-label").textContent="BUY DOWN";
@@ -129,8 +134,8 @@
       if(hasLast){
         $("poly-up-label").textContent="UP LAST TRADE";
         $("poly-down-label").textContent="DOWN IMPLIED REFERENCE";
-        $("poly-up").textContent=money(last.upLast);
-        $("poly-down").textContent=money(last.downLast);
+        $("poly-up").textContent=money(safe.upLast);
+        $("poly-down").textContent=money(safe.downLast);
         $("poly-up-caption").textContent="Last trade · not a current ask";
         $("poly-down-caption").textContent="1 minus last trade · not a quote";
       }else{
