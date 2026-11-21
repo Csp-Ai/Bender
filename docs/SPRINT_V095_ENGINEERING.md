@@ -36,3 +36,7 @@ The live source is Polymarket US, and timestamps show when **Bender retrieved** 
 ## Release rule
 
 Review this isolated branch independently of the larger draft PR #1. Do **not** merge either branch, approve main, or promote Vercel production until the owner approves the reviewed commit and the applicable release gates are satisfied.
+
+## Runtime reproducibility
+
+The Vercel build reported that `node: >=20` would automatically upgrade to future major releases. The v0.9.5 review candidate instead declares Node **22.x** for deployed static/serverless builds and selects Node **22** in the GitHub Actions test workflow. Test against the actual release build; future major upgrades should be reviewed intentionally.
