@@ -47,7 +47,7 @@ def verify_day_archive(location, manifest=None):
         if not manifest_file.is_file():
             raise ValueError("Missing manifest for " + str(path))
         manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
-    if not isinstance(manifest, dict) or manifest.get("completed") is not True or manifest.get("schema_version") != 1:
+    if not isinstance(manifest, dict) or manifest.get("completed") is not True or manifest.get("schema_version") != 2:
         raise ValueError("Incomplete or unsupported manifest")
     venue, day = manifest.get("venue"), manifest.get("utc_day")
     if venue not in ("us", "international") or not isinstance(day, str):
@@ -63,7 +63,9 @@ def verify_day_archive(location, manifest=None):
         raise ValueError("Incomplete raw page listing")
     raw_hashes = set()
     expected_offset = 0
-    page_limit = None
+    page_limit = manifest.get("page_limit")
+    if isinstance(page_limit, bool) or not isinstance(page_limit, int) or not 1<=page_limit<=100:
+        raise ValueError("Missing or invalid manifest page limit; legacy archives require a trusted migration")
     for page in pages:
         if not isinstance(page, dict) or not isinstance(page.get("row_count"), int) or isinstance(page.get("row_count"), bool) or page["row_count"] < 0:
             raise ValueError("Invalid page row count")
@@ -75,15 +77,13 @@ def verify_day_archive(location, manifest=None):
         if not isinstance(rows, list) or len(rows) != page["row_count"]:
             raise ValueError("Raw page count does not match payload")
         raw_hashes.add(sha)
-        if page_limit is None:
-            # Offset 0 provides no page size. Infer it from the next offset,
-            # or require the final page count to be sufficient for a single page.
-            page_limit = pages[1]["offset"] if len(pages) > 1 else max(1, page["row_count"])
         expected_offset += page_limit
         if page["row_count"] > page_limit:
             raise ValueError("Page returned more rows than configured limit")
-    if len(pages) > 1 and pages[-1]["row_count"] >= page_limit:
+    if pages[-1]["row_count"] >= page_limit:
         raise ValueError("Incomplete pagination: terminal page not demonstrated")
+    if any(page["row_count"] != page_limit for page in pages[:-1]):
+        raise ValueError("Incomplete pagination: nonterminal page returned short data")
     normalized_file = path / "markets.jsonl"
     if not normalized_file.is_file():
         raise ValueError("Missing normalized data file")
