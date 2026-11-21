@@ -1,0 +1,14 @@
+{
+  "name": "bender-web",
+  "private": true,
+  "version": "0.9.4.1",
+  "description": "Read-only market research web app",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "build": "npm test",
+    "qa:browser": "node qa/browser-layout.cjs && node qa/browser-faults.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

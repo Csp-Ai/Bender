@@ -72,3 +72,71 @@
 - [x] Differentiate SPY regular session, closed market, and delayed intraday candles
 - [x] Keep the price readable on narrow phones
 - [ ] Verify the new 5-minute and 15-minute close times on Omar's iPhone in Safari
+
+## v0.9 historical intelligence and contract-readiness foundation (review branch)
+- [x] Split verified contract discovery and quote retrieval into separate endpoints; make first contract metadata visible without order-book latency
+- [x] Show quote pending/available/stale states and explicit no-verified-edge disclosure
+- [x] Add bounded per-venue historical metadata backfill, immutable raw archives, normalized JSONL, checkpoint manifests and coverage audit
+- [x] Add strict verified-outcome-only descriptive sequence metrics and read-only signal snapshot validation
+- [x] Add Node and Python regression tests to repository test workflow
+- [ ] Validate public API pagination and response schemas end-to-end against real archived days
+- [ ] Obtain verified US settlement outcomes and timestamped historical quote/fill data before backtesting entry/exit profitability
+- [ ] Build full chart signal capture/persistent journal; current helper is local, not a deployed store
+- [ ] Run chronological holdout models and calibration; no modeled probabilities in production until validated
+- [ ] Resolve failing GitHub Actions runner/workflow environment; current job results fail without accessible step logs
+- [ ] Review and merge PR, then verify production deployment and Omar's iOS behavior
+
+## v0.9.1 old LFGI chart alignment (review branch)
+- [x] 9 EMA green, 20 EMA yellow, 50 EMA orange, 200 EMA red on price chart
+- [x] Show 200 EMA already calculated by the long-term structure vote
+- [x] Keep EMA smoothing compatible with signed MACD histograms and test it
+- [x] Four-item legend wraps on narrow phones, without replacing candlestick direction colors
+- [ ] Review actual chart readability on Omar's iPhone in a live five- and fifteen-minute session
+- [ ] Evaluate independent LFGI overlays (VWAP bands, pivots, support/resistance) in later PRs without overcrowding the live screen
+
+## v0.9.2 — Past Reads, first point-in-time chart memory
+- [x] Browser-local, one-per-fresh-completed-candle chart observation records
+- [x] Preserve eight-factor votes, current 9/20/50/200 EMA values, source and UTC timestamps
+- [x] Optional time-validated, verified US contract ID/target and fresh indicative quote context
+- [x] Collapsible mobile Past Reads, CSV export, clear-on-device with explicit confirmation
+- [x] Prevent demo/stale/future/duplicate chart observations and fabricated outcome/trade metrics
+- [ ] Hosted, permissioned cross-device research journal if Chris/Omar explicitly decide it is needed
+- [ ] Server-side verified contract settlement ingestion and historical signal comparison
+- [ ] Historical quote replay and calibrated probability metrics
+- [ ] Confirm UI quality and in-browser storage on Omar's device
+
+## v0.9.3 — verified US settlement evidence on Past Reads
+- [x] Read-only official US settlement endpoint, with exact BTC market identity and term validation
+- [x] Distinguish verified binary Up/Down, fractional settlement, awaiting settlement, malformed result and unavailable feed
+- [x] Explicitly mark check timestamp as local retrieval, not exchange publication time
+- [x] Manual, bounded Past Reads result check, separate local verified settlement cache and descriptive direction comparison
+- [x] Link known official contract metadata discovered after chart capture with an honest later `linkedAt`; never infer prior quotes
+- [x] Export settlement evidence conditionally when market identity, target, time and numeric value match
+- [x] Gate preview builds on Node regression suite and keep static/site API routes working
+- [ ] Confirm late-arriving actual US settlement result (not just awaiting state) against multiple live archived contracts
+- [ ] Complete full historical US metadata and settlement backfill; currently only individually observed and checked markets
+- [ ] Verify on Omar's iPhone and investigate GitHub Actions environment failures
+- [ ] Obtain point-in-time historical execution quotes before claiming return or strategy edge
+
+## v0.9.4 — Mobile UX consolidation (review branch)
+- [x] Remove promotional hero from mobile landing while preserving desktop branding
+- [x] Sticky Live / Chart / Past Reads jump navigation on phones
+- [x] Single-tap 5m/15m controls, using existing native change-event flow for both data/contract APIs
+- [x] Collapse data-mode options without weakening fake/demo warnings
+- [x] Remove duplicate Polymarket CTA and repeated primary-card disclaimers
+- [x] Preserve one visible verified contract action, SPY browse-only path, stale quotes and no-verified-edge note
+- [x] Keep eight factors, Past Reads, settlement verification and 9/20/50/200 LFGI EMAs accessible
+- [ ] Confirm actual mobile browser layout, live rollover and installed-app handoff with Omar
+- [ ] Complete historical research / validation before predictive probability features
+
+## v0.9.4.1 stress QA hardening
+- [x] 63 Node unit tests and 22 Python tests passed in separate sandbox checkout
+- [x] Playwright at 320/375/390/768/1280px: no horizontal scrolling or JS errors; switching, navigation and local journal pass
+- [x] Seven degraded-feed scenarios: stale/missing/impossible quote, 20 fast toggles, chart outage recovery, missing contract, local history
+- [x] Prevent practice mode showing live Polymarket contract CTA
+- [x] Reject out-of-range market offer prices at the browser display boundary
+- [x] Verify horizon window lengths and market identity before displaying verified contract
+- [x] Check live BTC/SPY candle and US contract endpoints; no high-volume third-party load
+- [ ] Test live rollover and Polymarket app handoff on Omar's iPhone
+- [ ] Resolve GitHub Actions jobs failing without runner/steps
+- [ ] Validate full historical archive and genuine settled US outcomes

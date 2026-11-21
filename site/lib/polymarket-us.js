@@ -29,7 +29,10 @@ const isBTCUpDown=(m,interval,now)=>{
   if(String(t.asset&&t.asset.symbol||"").toLowerCase()!=="btc")return false;
   if(intervalOf(t.horizon)!==interval)return false;
   const start=timestamp(t.windowStart),end=timestamp(t.windowEnd);
-  if(start===null||end===null||start>end)return false;
+  if(start===null||end===null||end-start!==interval*60000)return false;
+  // An unknown identifier or malformed slug is not a verified market.
+  if(!/^[A-Za-z0-9_-]{1,90}$/.test(String(m.id||""))||
+     !/^[a-z0-9][a-z0-9-]{3,179}$/.test(String(m.slug||"")))return false;
   // Must refer to the current time window, not yesterday's or tomorrow's contract.
   return start<=now+10000&&end>now&&end-now<=interval*60000+10000;
 };

@@ -78,3 +78,49 @@ Exchange OHLC timestamps identify the candle **opening**, not its closing. The q
 The chart endpoint returns a non-cacheable response plus an explicit `lastCandleClosedAt` field. The chart checks for new completed candles every 15 seconds while visible, refreshes when users return to the tab, and reassesses freshness every second without waiting for the next fetch. A small provider delay is allowed around each boundary. When a new completed candle is overdue, the UI hides the old up/down bias and rule score instead of passing it off as current. It retains the historical last-close price with a clear delayed label. Outside regular US trading hours, SPY is shown as historical data rather than a live stock session.
 
 The mobile last-candle price is given a full-width row so it does not split the cents onto another line.
+
+## v0.9 review branch (not yet deployed)
+
+A new `/api/contract?interval=5|15` verifies market metadata independently of bids/asks. A separate `/api/quotes?slug=<verified-slug>` checks indicative bid/ask data; no quote means unavailable, never a fabricated percentage. The mobile market card renders target/countdown immediately and states quote freshness and unverified research edge independently. No model probability or trading execution has been added. See historical research instructions in `../research/README.md`.
+
+## v0.9.1 LFGI chart palette — Chris and Omar review
+
+Matches the archived LFGI Trading System chart conventions: **9 EMA green** (#22C55E), **20 EMA yellow** (#FACC15), **50 EMA orange** (#F97316), and **200 EMA red** (#EF4444). All four are calculated from the selected chart's timestamped *completed candle closes* and rendered over the existing price chart on BTC and SPY (including prominently labeled practice candles). The 200 EMA previously supported long-term structure scoring but was not plotted; it is now included visually and in the chart's vertical bounds so it does not silently disappear. The chart legend wraps on phones. EMA smoothing also supports signed values for the MACD signal calculation.
+
+The LFGI reference material also describes support/resistance, psychological levels, pivots, VWAP (middle and upper bands), RSI, MACD, volume and reading tape. These are historical research directions, **not claims of shipped overlays or verified predictive signals**. Bender already uses parts of VWAP/RSI/MACD/volume in its factor analysis. No automatic trading or win-probability model was added.
+
+## v0.9.2 Past Reads: browser-local observation journal
+
+Bender now records **one fresh, completed live candle chart observation** per symbol and candle interval in the browser that viewed it, keyed by symbol, interval, and candle-close time. A record includes observation time, source, closed price, eight-factor score and individual direction votes, and all four LFGI EMA values (9 green, 20 yellow, 50 orange, 200 red). When a verified Polymarket US market was already known at observation time, optional market ID/target and fresh indicative quotes can be saved as *context*, not implied probabilities or actual fills.
+
+The Past Reads section appears below the live trading handoff, and is collapsed by default on phones. A user may inspect entries, export a local CSV, or explicitly clear history on that device. Up to 150 records are retained **per browser** using localStorage (no synchronization, server warehouse, login, or guarantee of persistence). Browser privacy controls, storage clearing, or quota limits can prevent saving; the system fails without inventing records. Data from another device cannot appear automatically. A downloaded CSV is a local observation export, **not a performance backtest**.
+
+No automatic contract-result reconciliation or live trade information is captured. New records only appear after a verified current chart feed responds, so page load, network outage, background tabs, practice mode and closed/stale candles do not create simulated historical observations. Future model training must not treat these records as authoritative fills, prediction outcomes or historical point-in-time market quotes.
+
+Verification: `node --test site/tests/read-journal.test.cjs` and `node --check site/lib/read-journal.js` can be run locally. Full regression suite and browser end-to-end remain separate release gates.
+
+## v0.9.3 official US contract settlement lookup (review branch)
+
+**Past Reads** can now manually check official Polymarket US settlement values for historical chart reads that contain a verified market identity and have passed their contract end time. The server first verifies the exact market slug, market ID, BTC Up/Down terms, 5m/15m horizon, window, and opening target via `GET /v1/market/slug/{slug}`; only then does it request `GET /v1/markets/{slug}/settlement`. A numeric settlement of 1 maps to YES/Up, 0 to NO/Down, and a fractional value is reported as nonbinary. Missing, delayed, mismatched and malformed settlement data fail closed. The API's `checkedAt` is Bender's retrieval timestamp, **not** the exchange's official settlement publication time.
+
+Official outcome evidence is saved separately from the original chart observation. Bender compares chart lean and verified settlement direction descriptively ("direction matched" or "direction differed"), **never calling it an executed trade or calculating P&L**. A verified contract that becomes available after the chart read may be linked retroactively as metadata with an explicit `linkedAt` timestamp. **Historical order book quotes are never backdated**. CSV exports may include separately matched, verified settlement state, checked timestamp, and the descriptive direction comparison.
+
+This is a **manual, read-only, local-device feature**. Up to eight distinct eligible unverified market IDs are checked per click. An upstream 404 often means an outcome is not yet published; Bender displays "awaiting settlement" and permits retry rather than inferring a winner. No cross-device synchronization, user-specific bets, or historical settlement time are asserted.
+
+The Vercel preview build now runs the browser-side Node test suite using the site's `package.json`; `site/vercel.json` preserves the static root and serverless functions. The Python unit suite and iPhone end-to-end checks still need independent verification.
+
+## v0.9.4 — Omar mobile workflow consolidation
+
+The mobile first view now prioritizes **verified live contract → Bender Quick Read → 9/20/50/200 EMA chart**. It removes the promotional hero on narrow screens and adds a sticky three-section Live/Chart/Past Reads navigation (all sections are still visible on scroll). The 5m/15m touch toggle updates the existing native interval select through a real `change` event, so the chart and Polymarket contract code retain their existing refresh and timeframe validation. The native select remains on desktop and as the authoritative value for all API requests.
+
+Mobile data-mode controls are collapsed under "Data options" but automatically label PRACTICE mode clearly; the existing simulated data warning is retained. The main contract card has a **single** open-Polymarket link; source rules, quote caveats, and the app-home fallback are available via a small disclosure section. SPY has its own browse-only Polymarket link because a specific SPY contract is not verified. Stale/unavailable quote states and the concise "no verified trading edge" note are retained rather than hiding critical market limitations.
+
+Past Reads, the eight-factor breakdown, research journal, verified settlement checks, chart-data sources, and export remain intact, with no changes to the model or inferred probabilities. Desktop retains its original introductory section, asset selection, dropdowns, and chart layout.
+
+Quality gates: `node --test site/tests/*.test.cjs` includes `mobile-ui.test.cjs` checks for event compatibility, practice toggle accessibility, fragment navigation, and single handoff. `node --check site/mobile-ui.js` runs in GitHub Actions. Validate the production-sized viewport and the actual Polymarket app handoff with Omar before promoting this draft PR.
+
+## v0.9.4.1 stress-tested QA patch (review branch)
+
+The browser now hides Polymarket's live contract section while practice candles are active, rejects malformed indicative prices (including values above 100¢) in the *display layer*, and validates exact BTC contract intervals and identifiers. These bugs surfaced in actual headless-browser fault tests and have regression tests. The quick-start QA notes and optional browser tests are in [qa/README.md](qa/README.md); the complete observed results and limits are in [the stress-test report](../docs/STRESS_TEST_V0941.md).
+
+To reproduce with local Chromium support, install Playwright **only for testing** and run `npm run qa:browser`. Default `npm test` remains dependency-free. The current evidence is 63 Node unit tests, 22 Python tests, 5 viewport scenarios and 7 browser fault scenarios passed in an isolated sandbox. No throughput SLA, exchange quote age, Safari app-link validation, or profitable strategy claim is established.

@@ -9,3 +9,7 @@ venv/
 .DS_Store
 *.csv
 *.jsonl
+
+# Local historical datasets, immutable raw market captures and journals
+research-data/
+*.parquet

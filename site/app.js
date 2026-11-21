@@ -1,8 +1,8 @@
 "use strict";
 (function () {
   const $ = id => document.getElementById(id);
-  const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1, requestId:0, controller:null, lastCheckedAt:0, lastClosedAt:0, feedName:""};
-  const colors = {up:"#51dbac",down:"#ff7182",ema9:"#75B9FF",ema20:"#E5C478",ema50:"#D0E8FF"};
+  const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1, requestId:0, controller:null, lastCheckedAt:0, lastClosedAt:0, feedName:"", feedSource:""};
+  const colors = {up:"#51dbac",down:"#ff7182",ema9:window.BenderEma.PALETTE[9],ema20:window.BenderEma.PALETTE[20],ema50:window.BenderEma.PALETTE[50],ema200:window.BenderEma.PALETTE[200]};
   const fmt = v => Number.isFinite(v) ? "$" + new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "-";
   const shortTime = s => new Date(s * 1000).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   const dirName = d => d > 0 ? "UP" : d < 0 ? "DOWN" : "MIXED";
@@ -10,6 +10,7 @@
   const dirClass = d => d > 0 ? "bull" : d < 0 ? "bear" : "neutral";
   const timeUtil = window.BenderCandleTime;
   if(!timeUtil||typeof timeUtil.assess!=="function")throw new Error("Candle freshness checks did not load");
+  if(!window.BenderEma||typeof window.BenderEma.series!=="function")throw new Error("LFGI moving-average calculations did not load");
   const localTime = timestamp => new Date(timestamp).toLocaleString(undefined,{
     month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"
   });
@@ -51,20 +52,17 @@
       $("score").className="stat-value muted";
     }
     const explanation=$("quick-text");
-    if(isDemo) explanation.textContent="Practice only. These candles are simulated and cannot support a real trade.";
-    else if(closed) explanation.textContent="SPY's regular trading session is closed. This is the latest available historical chart, not a live signal.";
-    else if(stale) explanation.textContent="The latest completed candle is behind the expected close time. Bender is refreshing the chart. Don't use an older trend score for a short-term contract.";
-    else {
-      const lead=a.bias==="BULLISH"?"Buyers have momentum in the recent completed candles.":a.bias==="BEARISH"?"Sellers have momentum in the recent completed candles.":"The finished candles show a mixed trend.";
-      explanation.textContent=lead+" Last candle closed "+localTime(f.closeMs)+". This is chart direction, not a BRTI settlement forecast.";
-    }
+    if(isDemo) explanation.textContent="Practice candles only. Not real market data.";
+    else if(closed) explanation.textContent="SPY session closed. Last chart read is historical.";
+    else if(stale) explanation.textContent="Chart delayed. Older trend scores are hidden until a fresh candle arrives.";
+    else explanation.textContent=a.bias==="BULLISH"
+      ?"Recent completed candles favor buyers. Chart trend only."
+      :a.bias==="BEARISH"
+        ?"Recent completed candles favor sellers. Chart trend only."
+        :"Recent completed candles show mixed direction. Chart trend only.";
   }
 
-  function emaSeries(values, span) {
-    let last = values[0];
-    const alpha = 2/(span+1);
-    return values.map((v,i) => { if (i) last = (v-last)*alpha+last; return last; });
-  }
+  const emaSeries=(values,span)=>window.BenderEma.series(values,span);
   function rsi14(values) {
     let gain=0, loss=0;
     for(let i=1;i<=14;i++){const d=values[i]-values[i-1];gain+=Math.max(d,0);loss+=Math.max(-d,0);}
@@ -111,7 +109,7 @@
     if (time.status==="FUTURE"||time.status==="INVALID") warnings.push("Candle timestamps could not be verified.");
     if (rows.slice(-20).some(x=>x.v===0)) warnings.push("Zero-volume candles can distort indicator readings.");
     if (state.source==="demo") warnings.push("Simulated candles: not real prices, not actionable signals.");
-    return {score,bias,votes,support,resistance,rsi,e9,e20,e50,age,warnings,last};
+    return {score,bias,votes,support,resistance,rsi,e9,e20,e50,e200,age,warnings,last};
   }
   function demo() {
     const count=320,interval=state.interval;
@@ -139,8 +137,8 @@
     $("demoBanner").hidden=state.source!=="demo";
     $("data-status").textContent="UPDATING";
     try {
-      let rows;let feedName="";
-      if(state.source==="demo"){rows=demo();feedName="Fake practice candles";}
+      let rows;let feedName="",feedSource="";
+      if(state.source==="demo"){rows=demo();feedName="Fake practice candles";feedSource="PRACTICE";}
       else {
         const url="/api/candles?symbol="+encodeURIComponent(state.symbol)+"&interval="+state.interval;
         const controller=new AbortController();state.controller=controller;
@@ -150,6 +148,7 @@
           const json=await response.json();
           if(!response.ok)throw new Error(json.error||"Market feed unavailable");
           rows=json.candles;
+          feedSource=json.source;
           feedName=json.source==="YAHOO_FINANCE"?"Yahoo Finance SPY candles":json.source==="ALPACA_IEX"?"Alpaca IEX SPY candles":"Kraken BTC spot candles";
         }finally{clearTimeout(timeout);}
       }
@@ -160,10 +159,12 @@
       state.analysis=analyze(rows);
       state.data=rows;
       state.feedName=feedName;
+      state.feedSource=feedSource;
       state.lastClosedAt=(state.analysis.last.t+state.interval*60)*1000;
       state.lastCheckedAt=Date.now();
       state.hover=-1;
       render();
+      rememberRead();
       const info=freshness();
       $("data-status").textContent=state.source==="demo"?"PRACTICE MODE":info?.status==="MARKET_CLOSED"?"SPY / MARKET CLOSED":info?.status==="DELAYED"?"CHART DELAYED":state.symbol==="SPY"?"SPY / STOCK CHART":"BTC / KRAKEN CHART";
       $("updated").textContent="Last checked "+new Date(state.lastCheckedAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+" | "+feedName;
@@ -182,8 +183,28 @@
       $("error").textContent="Can’t check this chart right now: "+e.message+" Try again, or use Practice (Fake) to explore the layout.";
       $("error").hidden=false;
     }finally{
-      if(requestId===state.requestId){state.loading=false;state.controller=null;$("refresh").disabled=false;$("refresh").textContent="↻  Check chart";}
+      if(requestId===state.requestId){state.loading=false;state.controller=null;$("refresh").disabled=false;$("refresh").textContent="↻  Refresh";}
     }
+  }
+  function rememberRead(){
+    const j=window.BenderReadJournal;
+    if(!j||state.source!=="live"||!state.analysis||!state.data.length)return;
+    const info=freshness();
+    if(!info||info.status!=="FRESH")return;
+    const a=state.analysis;
+    const context=state.symbol==="BTC/USD"&&typeof window.BenderLiveContractContext==="function"
+      ?window.BenderLiveContractContext():null;
+    const saved=j.record({
+      version:1,symbol:state.symbol,intervalMinutes:state.interval,
+      feedSource:state.feedSource,
+      observedAt:new Date(state.lastCheckedAt).toISOString(),
+      candleClosedAt:new Date(state.lastClosedAt).toISOString(),
+      closePrice:a.last.c,bias:a.bias,score:a.score,
+      ema:{9:a.e9.at(-1),20:a.e20.at(-1),50:a.e50.at(-1),200:a.e200.at(-1)},
+      votes:a.votes.map(v=>({name:v.name,dir:v.dir})),
+      contract:context
+    });
+    if(saved.saved)window.dispatchEvent(new CustomEvent("bender:read-recorded",{detail:{count:saved.count}}));
   }
   function render(){
     const a=state.analysis,rows=state.data,scoreDirection=Math.sign(a.score);
@@ -240,7 +261,10 @@
     const start=Math.max(0,n-100), data=state.data.slice(start);
     const left=16,right=w<500?62:75,top=21,bottom=32;
     const plotW=w-left-right,plotH=h-top-bottom;
-    const extentMin=Math.min(...data.map(x=>x.l)),extentMax=Math.max(...data.map(x=>x.h));
+    // Include every visible LFGI EMA in the price range; a 200 EMA may
+    // sit beyond the recent candle highs/lows and must not disappear.
+    const overlayValues=[a.e9,a.e20,a.e50,a.e200].flatMap(values=>values.slice(start));
+    const extentMin=Math.min(...data.map(x=>x.l),...overlayValues),extentMax=Math.max(...data.map(x=>x.h),...overlayValues);
     const pad=Math.max(0.0001,(extentMax-extentMin)*.11);
     const ymin=extentMin-pad,ymax=extentMax+pad;
     const y=p=>top+(ymax-p)/(ymax-ymin)*plotH;
@@ -269,7 +293,7 @@
       const yO=y(r.o),yC=y(r.c);
       ctx.fillRect(xp-candleWidth/2,Math.min(yO,yC),candleWidth,Math.max(1,Math.abs(yC-yO)));
     });
-    [[a.e9,colors.ema9],[a.e20,colors.ema20],[a.e50,colors.ema50]].forEach(([series,color])=>{
+    [[a.e9,colors.ema9],[a.e20,colors.ema20],[a.e50,colors.ema50],[a.e200,colors.ema200]].forEach(([series,color])=>{
       ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=1.5;
       for(let i=0;i<data.length;i++){const xp=x(i),yp=y(series[start+i]);if(i===0)ctx.moveTo(xp,yp);else ctx.lineTo(xp,yp);}
       ctx.stroke();
@@ -295,11 +319,11 @@
   function describeMarket() {
     const spy=$("pair").value==="SPY";
     $("market-note").hidden=!spy;
-    $("market-note").textContent=spy?"SPY uses public intraday stock candles, which may be delayed. The US stock market has limited trading hours, and its Polymarket rules differ from BTC.":"";
-    $("contract-note").textContent=spy
-      ?"SPY contracts can use different rules and time windows. Check the exact terms in the US app."
-      :"Check the official target, time left, and quotes in Polymarket US. Bender does not place trades.";
-    $("polymarket-link").href=spy?"https://polymarket.us/":"https://polymarket.us/category/btc";
+    $("market-note").textContent=spy
+      ?"SPY prices may be delayed; stock hours and contracts differ from BTC.":"";
+    // BTC has a single verified-contract action. SPY gets a separate, clearly
+    // labelled browse-only link because we do not verify an SPY contract here.
+    $("spy-handoff").hidden=!spy;
   }
   function clearPriorRead() {
     state.analysis=null;state.data=[];state.chartMeta=null;state.lastClosedAt=0;state.lastCheckedAt=0;
