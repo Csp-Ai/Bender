@@ -17,5 +17,23 @@
     }
   ],
   "buildCommand": "npm test",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/research-bets",
+      "destination": "https://research-bets-5hwph9iif-christopher-s-ponces-projects.vercel.app/research-bets"
+    },
+    {
+      "source": "/research-bets/:path*",
+      "destination": "https://research-bets-5hwph9iif-christopher-s-ponces-projects.vercel.app/research-bets/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://research-bets-5hwph9iif-christopher-s-ponces-projects.vercel.app/research-bets/api/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://research-bets-5hwph9iif-christopher-s-ponces-projects.vercel.app/research-bets/:path*"
+    }
+  ]
 }
