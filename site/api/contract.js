@@ -3,11 +3,15 @@
 const {selectMarket,normalizeMarket}=require("../lib/polymarket-us");
 const {createCache}=require("../lib/request-coalescer");
 const PAGE_CACHE=createCache({ttlMs:1000,maxEntries:40});
+const {rateLimitError}=require("../lib/upstream-rate-limit");
+let limitedUntil=0;
 const BASE="https://gateway.polymarket.us";
 const WINDOWS=new Set([5,15]);
 async function getJson(url,signal){
   return PAGE_CACHE.get(String(url),async()=>{
     const response=await fetch(url,{signal,headers:{Accept:"application/json"},cache:"no-store"});
+    const blocked=rateLimitError(response);
+    if(blocked)throw blocked;
     if(!response.ok)throw new Error("Market feed HTTP "+response.status);
     const body=await response.json();
     if(!body||typeof body!=="object")throw new Error("Invalid market response");
@@ -20,7 +24,11 @@ module.exports=async function handler(req,res){
   if(req.method!=="GET")return res.status(405).json({available:false,error:"GET only"});
   const interval=Number(req.query?.interval||5);
   if(!WINDOWS.has(interval))return res.status(400).json({available:false,error:"Invalid BTC timeframe"});
-  const started=Date.now(),controller=new AbortController();
+  const started=Date.now();
+  if(Date.now()<limitedUntil)return res.status(503).json({available:false,interval,state:"RATE_LIMITED",
+    retryAfterSec:Math.max(1,Math.ceil((limitedUntil-Date.now())/1000)),checkedAt:new Date().toISOString(),
+    error:"Polymarket US temporarily rate limited"});
+  const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),7000);
   let checked=0,metadataRetrievedAt=null,cacheStatus="miss";
   try{
@@ -54,6 +62,12 @@ module.exports=async function handler(req,res){
       message:selected?null:"No currently verified BTC contract. Discovery is separate from quote retrieval."
     });
   }catch(_err){
+    if(_err?.code==="RATE_LIMITED"){
+      limitedUntil=Date.now()+_err.retryAfterSec*1000;
+      return res.status(503).json({available:false,interval,state:"RATE_LIMITED",
+        retryAfterSec:_err.retryAfterSec,checkedAt:new Date().toISOString(),lookupMs:Date.now()-started,
+        error:"Polymarket US temporarily rate limited"});
+    }
     return res.status(502).json({available:false,interval,state:"FEED_UNAVAILABLE",
       error:"Contract discovery unavailable; check the official market.",
       checkedAt:new Date().toISOString(),lookupMs:Date.now()-started});
@@ -62,3 +76,5 @@ module.exports=async function handler(req,res){
 
 // Exposed only for deterministic unit-test setup; never returned by API.
 module.exports._cache=PAGE_CACHE;
+
+module.exports._resetRateLimit=()=>{limitedUntil=0;};
