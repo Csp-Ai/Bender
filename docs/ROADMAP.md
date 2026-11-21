@@ -72,3 +72,16 @@
 - [x] Differentiate SPY regular session, closed market, and delayed intraday candles
 - [x] Keep the price readable on narrow phones
 - [ ] Verify the new 5-minute and 15-minute close times on Omar's iPhone in Safari
+
+## v0.9 historical intelligence and contract-readiness foundation (review branch)
+- [x] Split verified contract discovery and quote retrieval into separate endpoints; make first contract metadata visible without order-book latency
+- [x] Show quote pending/available/stale states and explicit no-verified-edge disclosure
+- [x] Add bounded per-venue historical metadata backfill, immutable raw archives, normalized JSONL, checkpoint manifests and coverage audit
+- [x] Add strict verified-outcome-only descriptive sequence metrics and read-only signal snapshot validation
+- [x] Add Node and Python regression tests to repository test workflow
+- [ ] Validate public API pagination and response schemas end-to-end against real archived days
+- [ ] Obtain verified US settlement outcomes and timestamped historical quote/fill data before backtesting entry/exit profitability
+- [ ] Build full chart signal capture/persistent journal; current helper is local, not a deployed store
+- [ ] Run chronological holdout models and calibration; no modeled probabilities in production until validated
+- [ ] Resolve failing GitHub Actions runner/workflow environment; current job results fail without accessible step logs
+- [ ] Review and merge PR, then verify production deployment and Omar's iOS behavior
