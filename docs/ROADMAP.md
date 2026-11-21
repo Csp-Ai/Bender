@@ -93,3 +93,14 @@
 - [x] Four-item legend wraps on narrow phones, without replacing candlestick direction colors
 - [ ] Review actual chart readability on Omar's iPhone in a live five- and fifteen-minute session
 - [ ] Evaluate independent LFGI overlays (VWAP bands, pivots, support/resistance) in later PRs without overcrowding the live screen
+
+## v0.9.2 — Past Reads, first point-in-time chart memory
+- [x] Browser-local, one-per-fresh-completed-candle chart observation records
+- [x] Preserve eight-factor votes, current 9/20/50/200 EMA values, source and UTC timestamps
+- [x] Optional time-validated, verified US contract ID/target and fresh indicative quote context
+- [x] Collapsible mobile Past Reads, CSV export, clear-on-device with explicit confirmation
+- [x] Prevent demo/stale/future/duplicate chart observations and fabricated outcome/trade metrics
+- [ ] Hosted, permissioned cross-device research journal if Chris/Omar explicitly decide it is needed
+- [ ] Server-side verified contract settlement ingestion and historical signal comparison
+- [ ] Historical quote replay and calibrated probability metrics
+- [ ] Confirm UI quality and in-browser storage on Omar's device
