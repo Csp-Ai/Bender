@@ -20,8 +20,8 @@ module.exports=async function handler(req,res){
   const timeout=setTimeout(()=>controller.abort(),7000);
   let checked=0;
   try{
-    const endMin=new Date(started-30*60000).toISOString();
-    const endMax=new Date(started+30*60000).toISOString();
+    const endMin=new Date(started-45*60000).toISOString();
+    const endMax=new Date(started+90*60000).toISOString();
     let selected=null;
     for(let page=0;page<4;page++){
       const url=new URL("/v1/markets",BASE);
