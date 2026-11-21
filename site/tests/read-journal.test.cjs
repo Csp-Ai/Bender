@@ -118,16 +118,21 @@ test("CSV is explicit about unverified outcomes and contains only validated rows
   assert.equal(output.split("\r\n").filter(Boolean).length,2);
 });
 test("CSV includes independently verified settlement without converting direction into P&L",()=>{
-  const r=snapshot(),now=Date.now();
+  const now=Date.now();
+  const r=snapshot({
+    observedAt:new Date(now-150000).toISOString(),
+    candleClosedAt:new Date(now-220000).toISOString()
+  });
   r.contract={venue:"us",id:"m124",slug:"cpc-btc-updown-5m-verified",
     intervalMinutes:5,target:56100,
-    startsAt:new Date(now-150000).toISOString(),
-    endsAt:new Date(now+150000).toISOString()};
+    startsAt:new Date(now-300000).toISOString(),
+    endsAt:new Date(now).toISOString()};
   const item=clean(r);
   assert.ok(item.contract);
   const good={venue:"us",id:"m124",slug:item.contract.slug,intervalMinutes:5,
-    state:"VERIFIED_DOWN",outcome:"DOWN",
-    checkedAt:new Date(now+120000).toISOString()};
+    startsAt:item.contract.startsAt,endsAt:item.contract.endsAt,target:item.contract.target,
+    settlement:0,state:"VERIFIED_DOWN",outcome:"DOWN",
+    checkedAt:new Date(now).toISOString()};
   const output=csv([item],()=>good);
   assert.match(output,/VERIFIED_DOWN/);
   assert.match(output,/DIRECTION_DIFFERED_NOT_PNL/);
@@ -135,6 +140,10 @@ test("CSV includes independently verified settlement without converting directio
   const mismatch=csv([item],()=>({...good,id:"wrong"}));
   assert.match(mismatch,/NOT_VERIFIED/);
   assert.doesNotMatch(mismatch,/DIRECTION_DIFFERED_NOT_PNL/);
+  const future=csv([item],()=>({...good,checkedAt:new Date(now+60000).toISOString()}));
+  assert.match(future,/NOT_VERIFIED/);
+  const wrongTerms=csv([item],()=>({...good,target:123}));
+  assert.match(wrongTerms,/NOT_VERIFIED/);
 });
 test("caps stored history at 150 most recent observations",()=>{
   const db=store();
