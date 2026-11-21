@@ -24,3 +24,13 @@ The ResearchBets preview branch sets `basePath: '/research-bets'` only on its ex
 6. Production needs a stable paired Next.js deployment, full regression evidence and explicit release authorization. **NO-GO** on production while these items remain open.
 
 The two integration branches intentionally target their respective already-open screenshot integrity branches as dependent review slices, rather than rewriting the main branch or merging unreviewed work.
+
+## Independent verification (2026-11-21)
+
+- Bender feature branch independently tested: **77/77 JavaScript tests passed**, **30/30 Python tests passed** after declared dependencies installed.
+- Headless Chromium market regression: **5/5 viewport scenarios** (320x568, 375x812, 390x844, 768x1024, 1280x800) and **7/7 fault/recovery scenarios passed**. Fixture market feeds were used.
+- Static Vercel rewrite audit passed: /research-bets mount, sports/screenshot API paths, no general catch-all, BTC/SPY exact API paths protected, single upstream and no secrets in config.
+- ResearchBets paired branch: complete npm run check exit 0, 773/773 tests, Next.js production build and basePath=/research-bets confirmed. Local Next runtime returned 200 on /research-bets, /research-bets/ingest and /research-bets/api/health with mount env present; unconfigured sports provider returned truthful HTTP 503.
+- Branch-specific Vercel preview setting RESEARCHBETS_BENDER_MOUNT=1 now configured on ResearchBets integration branch.
+
+**Still NO-GO**: Official Vercel deployment/build quota HTTP 402, protected preview SSO prevents public Bender reverse proxy, cross-zone authentication/navigation/screenshot e2e and physical iPhone acceptance unverified. The Bender rewrite currently references a protected branch-preview hostname that must be replaced with a stable publicly accessible integration zone. Production unchanged.
