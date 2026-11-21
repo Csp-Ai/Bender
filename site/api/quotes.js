@@ -43,6 +43,9 @@ module.exports=async function handler(req,res){
     }
     // quoteTime is server retrieval time, not exchange publication time.
     const hasQuote=!!quotes&&(quotes.upAsk!==null||quotes.downAsk!==null);
+    // A cached snapshot must retain the ORIGINAL retrieval time, even inside
+    // the nested quote payload, rather than looking freshly published.
+    if(quotes&&quotedAt)quotes.quoteTime=quotedAt;
     return res.status(200).json({
       slug,source:"Polymarket US",available:hasQuote,state:hasQuote?"QUOTE_AVAILABLE":"AWAITING_QUOTE",
       quotes:hasQuote?quotes:null,indicative,
