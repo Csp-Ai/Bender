@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0A101E" />
+  <meta name="description" content="Build and inspect a research-first sports parlay, with transparent odds math and concentration warnings." />
+  <title>Research Bets | Bender</title>
+  <link rel="stylesheet" href="/styles.css?v=0.9.5" />
+  <link rel="stylesheet" href="/research-bets/research-bets.css?v=1" />
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Bender home"><div class="brand-icon">B<span>↗</span></div><div><div class="brand-name">BENDER<span class="dot">.</span></div><div class="brand-line">RESEARCH FIRST</div></div></a>
+    <div class="section-label">THE SETUP</div>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="/" class="nav-item"><span>▥</span> Chart check <i>01</i></a>
+      <a href="/research-bets/" class="nav-item active" aria-current="page"><span>◈</span> Research Bets <i>02</i></a>
+      <a href="/#history" class="nav-item"><span>◇</span> Past reads <i>03</i></a>
+    </nav>
+    <div class="section-label markets-heading">WHAT WE RESEARCH</div>
+    <a href="/" class="market-row"><div class="coin-symbol bitcoin">₿</div><div><b>Bitcoin</b><small>BTC / USD</small></div></a>
+    <a href="/" class="market-row"><div class="coin-symbol spy">S</div><div><b>S&amp;P 500 ETF</b><small>SPY</small></div></a>
+    <div class="market-row"><div class="coin-symbol rb-icon">R</div><div><b>Research Bets</b><small>Sports / parlays</small></div><span class="market-indicator"></span></div>
+    <div class="side-bottom"><div class="crew-card"><div class="crew-label">BUILT BY</div><div class="avatars"><span>C</span><span>O</span><div>Chris <small>×</small> Omar</div></div><p>Investigate the thesis before risking the stake.</p></div><a class="github" href="https://github.com/Csp-Ai/Bender" target="_blank" rel="noopener">⌘ &nbsp; GitHub repository <span>↗</span></a></div>
+  </aside>
+  <main class="main rb-main">
+    <header class="topbar"><div class="breadcrumbs">BENDER <span>/</span> <strong>RESEARCH BETS</strong></div><div class="top-right"><span class="build">PARLAY LAB v1</span></div></header>
+    <nav class="rb-mobile-nav" aria-label="Bender navigation">
+      <a href="/">BTC + SPY</a><a href="/research-bets/" class="active" aria-current="page">Research Bets</a><a href="/#history">Past Reads</a>
+    </nav>
+    <section class="rb-intro">
+      <div class="section-kicker">02 / RESEARCH BETS</div>
+      <h1>Build the ticket. <span>Challenge every leg.</span></h1>
+      <p>Put the parlay together, calculate the payout, and expose weak assumptions before you place anything. This is a research workspace, not a sportsbook or betting tipster.</p>
+      <div class="rb-status-pills"><span>MANUAL ODDS</span><span>READ-ONLY</span><span>BROWSER-LOCAL DRAFT</span></div>
+    </section>
+    <section class="rb-workspace" aria-label="Parlay builder">
+      <div class="rb-layout">
+        <div class="rb-left">
+          <section class="rb-panel">
+            <div class="rb-panel-head"><div><div class="section-kicker">01 / CREATE A LEG</div><h2>Parlay builder</h2></div><span class="rb-chip">Up to 10 legs</span></div>
+            <p class="rb-help">Enter the actual sportsbook line and where you found it. Nothing is filled with invented odds.</p>
+            <form id="rb-leg-form" class="rb-form" autocomplete="off">
+              <div class="rb-fields two">
+                <label>Sport<select id="rb-sport"><option>NFL</option><option>NBA</option><option>MLB</option><option>NHL</option><option>NCAAF</option><option>NCAAB</option><option>UFC / MMA</option><option>Soccer</option><option>Other</option></select></label>
+                <label>Market<select id="rb-market"><option>Player prop</option><option>Moneyline</option><option>Spread</option><option>Game total</option><option>Fight winner</option><option>Other</option></select></label>
+              </div>
+              <label>Event / matchup<input id="rb-event" type="text" maxlength="120" placeholder="e.g. Team A vs Team B" required /></label>
+              <label>Selection / line<input id="rb-selection" type="text" maxlength="140" placeholder="e.g. Player 20+ points" required /></label>
+              <div class="rb-fields two">
+                <label>American odds<input id="rb-odds" type="text" inputmode="numeric" maxlength="7" placeholder="-115 or +140" required /></label>
+                <label>Sportsbook / source<input id="rb-source" type="text" maxlength="100" placeholder="e.g. FanDuel" /></label>
+              </div>
+              <label>Why this leg? <span class="rb-optional">Research notes</span><textarea id="rb-evidence" rows="2" maxlength="600" placeholder="Recent form, matchup, minutes/snaps, injuries, or why you would pass"></textarea></label>
+              <div id="rb-form-error" class="rb-form-error" role="alert" hidden></div>
+              <button id="rb-add" class="rb-primary" type="submit">+ Add to ticket</button>
+            </form>
+          </section>
+          <section class="rb-panel rb-legs-panel" aria-labelledby="rb-legs-title">
+            <div class="rb-panel-head"><div><div class="section-kicker">02 / THE TICKET</div><h2 id="rb-legs-title">Your legs <span id="rb-leg-count">(0)</span></h2></div><button id="rb-clear" type="button" class="rb-text-button" disabled>Clear</button></div>
+            <div id="rb-legs" class="rb-legs" aria-live="polite"><p class="rb-empty">No legs yet. Add a selection to start your research slip.</p></div>
+          </section>
+        </div>
+        <div class="rb-right">
+          <section class="rb-panel rb-summary" aria-labelledby="rb-summary-title">
+            <div class="rb-panel-head"><div><div class="section-kicker">03 / TICKET X-RAY</div><h2 id="rb-summary-title">Slip snapshot</h2></div><span id="rb-flag-count" class="rb-chip">0 flags</span></div>
+            <label class="rb-stake-label" for="rb-stake">Hypothetical stake ($)</label>
+            <input id="rb-stake" type="number" min="0" max="1000000" step="0.01" placeholder="Optional" inputmode="decimal" />
+            <div class="rb-metrics">
+              <div><small>COMBINED AMERICAN ODDS</small><strong id="rb-combined">—</strong></div>
+              <div><small>THEORETICAL IMPLIED RATE*</small><strong id="rb-implied">—</strong></div>
+              <div><small>GROSS RETURN</small><strong id="rb-return">—</strong></div>
+              <div><small>NET PROFIT</small><strong id="rb-profit">—</strong></div>
+            </div>
+            <p class="rb-metric-note">*Calculated mechanically from entered prices assuming independent legs. It is <strong>not</strong> a predicted win rate, fair probability, or validated edge. Sportsbook vig and same-game correlation matter.</p>
+            <div class="rb-divider"></div>
+            <h3>What could break this?</h3>
+            <div id="rb-flags" class="rb-flags" aria-live="polite"><p class="rb-empty">Add legs to see structure and evidence warnings.</p></div>
+            <div class="rb-actions">
+              <button id="rb-copy" class="rb-primary" type="button" disabled>Copy research brief</button>
+              <a class="rb-secondary" href="https://research-bets.vercel.app/stress-test" target="_blank" rel="noopener noreferrer">Open full Ticket X-Ray ↗</a>
+            </div>
+            <p id="rb-save-status" class="rb-save-status" role="status">Draft stays on this device. No bet is submitted.</p>
+          </section>
+          <section class="rb-panel rb-research-card">
+            <div class="section-kicker">MORE RESEARCH POWER</div>
+            <h2>Already built: ResearchBets</h2>
+            <p>Use your existing ResearchBets platform for the deeper discover → build → stress-test → track → review workflow. This Bender builder is an independent local draft; it does not synchronize slips to ResearchBets.</p>
+            <a class="rb-outline-link" href="https://research-bets.vercel.app/" target="_blank" rel="noopener noreferrer">Launch ResearchBets ↗</a>
+          </section>
+          <p class="rb-bottom-note">Research only. Odds and payouts reflect what you type, not a live provider feed. No bets, account connections, or automatic tickets. Always verify event details, updated lines and eligibility directly with the sportsbook.</p>
+        </div>
+      </div>
+      <footer><span>BENDER / CHRIS × OMAR</span><span>RESEARCH THE LEG → STRESS THE TICKET → YOUR CALL</span></footer>
+    </section>
+  </main>
+</div>
+<script defer src="/research-bets/math.js?v=1"></script>
+<script defer src="/research-bets/research-bets.js?v=1"></script>
+</body>
+</html>
