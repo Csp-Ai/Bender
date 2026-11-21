@@ -156,10 +156,6 @@
       "destination": "https://research-bets-git-feat-v12-a7883a-christopher-s-ponces-projects.vercel.app/research-bets/api/run"
     },
     {
-      "source": "/api/settlement",
-      "destination": "https://research-bets-git-feat-v12-a7883a-christopher-s-ponces-projects.vercel.app/research-bets/api/settlement"
-    },
-    {
       "source": "/api/slips",
       "destination": "https://research-bets-git-feat-v12-a7883a-christopher-s-ponces-projects.vercel.app/research-bets/api/slips"
     },
