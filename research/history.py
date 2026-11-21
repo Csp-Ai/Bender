@@ -188,21 +188,37 @@ def collect_day(venue, day, root, *, session=None, limit=100, max_pages=100):
     root = Path(root)
     location = root / venue / day.isoformat()
     manifest_path = location / "manifest.json"
+    # Import lazily to keep the verifier independent of the collector CLI.
+    from .integrity import verify_day_archive, verify_page_checkpoint
     if manifest_path.exists():
-        return json.loads(manifest_path.read_text(encoding="utf-8"))
+        return verify_day_archive(location)
     session = session or requests.Session()
     retrieved_at = iso(datetime.now(timezone.utc))
     by_id = {}
     page_infos = []
     for page in range(max_pages):
-        body, rows, url = get_page(session, venue, day, page * limit, limit)
-        raw = canonical_json(body)
-        digest = sha256(raw)
-        raw_path = location / "raw" / (digest + ".json")
-        raw_path.parent.mkdir(parents=True, exist_ok=True)
-        if not raw_path.exists():
-            with open(raw_path, "x", encoding="utf-8") as file:
-                file.write(raw + "\n")
+        offset = page * limit
+        checkpoint_name = f"page-{offset:08d}.json"
+        checkpoint = verify_page_checkpoint(location, checkpoint_name, venue, day.isoformat(), offset, limit)
+        if checkpoint:
+            body, rows, url, digest = checkpoint
+        else:
+            body, rows, url = get_page(session, venue, day, offset, limit)
+            raw = canonical_json(body)
+            digest = sha256(raw)
+            raw_path = location / "raw" / (digest + ".json")
+            raw_path.parent.mkdir(parents=True, exist_ok=True)
+            if raw_path.exists():
+                existing = raw_path.read_text(encoding="utf-8")
+                if existing != raw + "\n":
+                    raise ValueError("Existing raw payload conflicts with retrieved hash")
+            else:
+                atomic_write(raw_path, raw + "\n")
+            checkpoint_data = {
+                "venue": venue, "day": day.isoformat(), "offset": offset,
+                "limit": limit, "sha256": digest, "row_count": len(rows), "url": url
+            }
+            atomic_write(location / "checkpoints" / checkpoint_name, canonical_json(checkpoint_data) + "\n")
         page_infos.append({"offset": page * limit, "row_count": len(rows), "url": url, "sha256": digest})
         for market in rows:
             normalized = normalize_market(venue, market, digest, retrieved_at)
@@ -235,7 +251,7 @@ def collect_day(venue, day, root, *, session=None, limit=100, max_pages=100):
         "notes": "API window results are not a completeness guarantee. Outcomes are unverified and quote history is not included.",
     }
     atomic_write(manifest_path, canonical_json(manifest) + "\n")
-    return manifest
+    return verify_day_archive(location)
 
 
 def main():
