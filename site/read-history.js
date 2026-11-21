@@ -2,8 +2,9 @@
 // Read-only journal viewer. Past reads are saved on this browser, not to an account.
 (function(){
   const journal=window.BenderReadJournal;
+  const settlements=window.BenderSettlements;
   const section=document.getElementById("history");
-  if(!journal||!section)return;
+  if(!journal||!settlements||!section)return;
   const $=id=>document.getElementById(id);
   const when=iso=>new Date(iso).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
   const price=v=>"$"+Number(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -19,6 +20,9 @@
     $("history-count").textContent=items.length+" recorded";
     $("history-export").disabled=items.length===0;
     $("history-clear").disabled=items.length===0;
+    const eligible=items.filter(item=>item.contract&&Date.parse(item.contract.endsAt)<=Date.now());
+    $("history-verify").disabled=eligible.length===0;
+    $("history-checkable").textContent=eligible.length+" historical chart reads with verified US contract context";
     const list=$("history-list");list.replaceChildren();
     if(!items.length){
       list.append(node("p","history-empty","No saved reads yet. Bender starts recording fresh, completed live chart observations in this browser after you open the site."));
@@ -34,7 +38,8 @@
         item.bias+" · "+signed(item.score)+"/8"));
       details.append(summary);
       const content=node("div","history-detail");
-      const note=node("p","history-disclaimer","Recorded chart observation, not a trade, backtest, win prediction or verified contract outcome.");
+      const settlement=settlements.forRead(item);
+      const note=node("p","history-disclaimer","Recorded chart observation, not a trade, backtest, win prediction or demonstrated trading edge.");
       const rows=node("div","history-data");
       for(const [label,value] of [
         ["Observed at",when(item.observedAt)],
@@ -49,7 +54,12 @@
           ?"UP "+(item.contract.quote.upAsk===null?"--":Math.round(item.contract.quote.upAsk*100)+"¢")+
            " / DOWN "+(item.contract.quote.downAsk===null?"--":Math.round(item.contract.quote.downAsk*100)+"¢")
           :"Not recorded"],
-        ["Settlement outcome","Not verified"]
+        ["Settlement outcome",settlement?(settlement.outcome||"NON-BINARY / VOID"):"Not verified"],
+        ["Outcome checked",settlement?when(settlement.checkedAt):"Not checked"],
+        ["Chart vs settlement",!settlement?"No verified comparison":!settlement.outcome?"Non-binary result":
+          item.bias==="NEUTRAL"?"No chart direction":
+          (item.bias==="BULLISH"&&settlement.outcome==="UP"||item.bias==="BEARISH"&&settlement.outcome==="DOWN")
+            ?"Direction matched (not a win)":"Direction differed (not a trade)"]
       ]){
         const cell=node("div","history-field");
         cell.append(node("span","",label),node("strong","",value));
@@ -69,6 +79,45 @@
     }
     if(items.length>30)list.append(node("p","history-empty","Showing 30 of "+items.length+" reads. Export CSV for the complete local record."));
   }
+  let busy=false;
+  $("history-verify").addEventListener("click",async()=>{
+    if(busy)return;
+    const entries=journal.read().filter(x=>x.contract&&Date.parse(x.contract.endsAt)<=Date.now());
+    const unique=new Map();
+    for(const item of entries){
+      if(settlements.forRead(item))continue;
+      unique.set(item.contract.id,item);
+    }
+    const pending=[...unique.values()].slice(0,8);
+    if(!pending.length){$("history-verify-status").textContent="No unverified eligible contracts in the saved reads.";render();return;}
+    busy=true;$("history-verify").disabled=true;
+    let verified=0,awaiting=0,unavailable=0;
+    try{
+      for(let i=0;i<pending.length;i++){
+        const item=pending[i],m=item.contract;
+        $("history-verify-status").textContent="Checking official US contracts "+(i+1)+" of "+pending.length+"...";
+        try{
+          const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8500);
+          let response;
+          try{response=await fetch("/api/settlement?slug="+encodeURIComponent(m.slug)+
+            "&id="+encodeURIComponent(m.id)+"&interval="+m.intervalMinutes,
+            {signal:ctrl.signal,cache:"no-store"});}finally{clearTimeout(timer);}
+          if(!response.ok)throw Error("Feed unavailable");
+          const body=await response.json();
+          const result=settlements.fromResponse(body,item);
+          if(result){
+            const saved=settlements.save(result,item);
+            if(saved.saved)verified++;else unavailable++;
+          }else if(body.state==="AWAITING_SETTLEMENT")awaiting++;
+          else unavailable++;
+        }catch(_){unavailable++;}
+      }
+      render();
+      $("history-verify-status").textContent="Checked "+pending.length+" contracts: "+verified+
+        " verified, "+awaiting+" awaiting settlement, "+unavailable+
+        " unavailable or unverified. Results are not trade performance.";
+    }finally{busy=false;render();}
+  });
   $("history-export").addEventListener("click",()=>{
     const items=journal.read();
     if(!items.length)return;
@@ -81,9 +130,13 @@
   });
   $("history-clear").addEventListener("click",()=>{
     if(!window.confirm("Delete saved Bender chart reads on this browser? This cannot be undone."))return;
-    if(journal.clear())render();
+    if(journal.clear()){
+      settlements.clear();
+      $("history-verify-status").textContent="Local reads and stored settlement comparisons cleared.";
+      render();
+    }
   });
   window.addEventListener("bender:read-recorded",render);
-  window.addEventListener("storage",event=>{if(event.key===journal.KEY)render();});
+  window.addEventListener("storage",event=>{if(event.key===journal.KEY||event.key===settlements.KEY)render();});
   render();
 })();
