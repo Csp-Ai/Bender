@@ -9,6 +9,6 @@
     "qa:browser": "node qa/browser-layout.cjs && node qa/browser-faults.cjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   }
 }
