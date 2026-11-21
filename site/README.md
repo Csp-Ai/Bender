@@ -82,3 +82,9 @@ The mobile last-candle price is given a full-width row so it does not split the 
 ## v0.9 review branch (not yet deployed)
 
 A new `/api/contract?interval=5|15` verifies market metadata independently of bids/asks. A separate `/api/quotes?slug=<verified-slug>` checks indicative bid/ask data; no quote means unavailable, never a fabricated percentage. The mobile market card renders target/countdown immediately and states quote freshness and unverified research edge independently. No model probability or trading execution has been added. See historical research instructions in `../research/README.md`.
+
+## v0.9.1 LFGI chart palette — Chris and Omar review
+
+Matches the archived LFGI Trading System chart conventions: **9 EMA green** (#22C55E), **20 EMA yellow** (#FACC15), **50 EMA orange** (#F97316), and **200 EMA red** (#EF4444). All four are calculated from the selected chart's timestamped *completed candle closes* and rendered over the existing price chart on BTC and SPY (including prominently labeled practice candles). The 200 EMA previously supported long-term structure scoring but was not plotted; it is now included visually and in the chart's vertical bounds so it does not silently disappear. The chart legend wraps on phones. EMA smoothing also supports signed values for the MACD signal calculation.
+
+The LFGI reference material also describes support/resistance, psychological levels, pivots, VWAP (middle and upper bands), RSI, MACD, volume and reading tape. These are historical research directions, **not claims of shipped overlays or verified predictive signals**. Bender already uses parts of VWAP/RSI/MACD/volume in its factor analysis. No automatic trading or win-probability model was added.
