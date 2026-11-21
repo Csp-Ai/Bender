@@ -169,3 +169,8 @@
  .history-summary{align-items:flex-start}
  .history-summary>strong{font-size:10px}
 }
+
+/* v0.9.3: evidence-first official result checks. */
+.history-verify-status{font-size:10px;line-height:1.65;color:#a9d5ef;border-left:3px solid #4b84c7;padding:7px 10px;background:#102440;border-radius:4px;margin:8px 0 14px}
+.history-actions #history-verify{background:#155a72;border-color:#3894a7;color:#e2f9ff}
+.history-actions #history-verify:disabled{background:#223447;border-color:#35495d;color:#9caac0}
