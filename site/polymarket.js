@@ -182,7 +182,10 @@
     const m=data.market||{},start=Date.parse(m.startsAt),end=Date.parse(m.endsAt);
     const interval=Number($("interval").value);
     if(!Number.isFinite(start)||!Number.isFinite(end)||start>Date.now()+10000||end<=Date.now()||
-       end-start>interval*60000+20000)return noContract("Contract feed returned an invalid or expired window. Rechecking...");
+       end-start!==interval*60000||
+       !/^[A-Za-z0-9_-]{1,90}$/.test(String(m.id||""))||
+       !/^[a-z0-9][a-z0-9-]{3,179}$/.test(String(m.slug||"")))
+      return noContract("Contract feed returned invalid market identity or window. Rechecking...");
     const switched=identity(market)!==identity(m);
     if(switched){
       generation++;
