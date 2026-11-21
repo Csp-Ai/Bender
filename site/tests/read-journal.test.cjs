@@ -117,6 +117,25 @@ test("CSV is explicit about unverified outcomes and contains only validated rows
   assert.match(output,/NO_TRADE_DATA/);
   assert.equal(output.split("\r\n").filter(Boolean).length,2);
 });
+test("CSV includes independently verified settlement without converting direction into P&L",()=>{
+  const r=snapshot(),now=Date.now();
+  r.contract={venue:"us",id:"m124",slug:"cpc-btc-updown-5m-verified",
+    intervalMinutes:5,target:56100,
+    startsAt:new Date(now-150000).toISOString(),
+    endsAt:new Date(now+150000).toISOString()};
+  const item=clean(r);
+  assert.ok(item.contract);
+  const good={venue:"us",id:"m124",slug:item.contract.slug,intervalMinutes:5,
+    state:"VERIFIED_DOWN",outcome:"DOWN",
+    checkedAt:new Date(now+120000).toISOString()};
+  const output=csv([item],()=>good);
+  assert.match(output,/VERIFIED_DOWN/);
+  assert.match(output,/DIRECTION_DIFFERED_NOT_PNL/);
+  assert.match(output,/NO_TRADE_DATA/);
+  const mismatch=csv([item],()=>({...good,id:"wrong"}));
+  assert.match(mismatch,/NOT_VERIFIED/);
+  assert.doesNotMatch(mismatch,/DIRECTION_DIFFERED_NOT_PNL/);
+});
 test("caps stored history at 150 most recent observations",()=>{
   const db=store();
   const records=Array.from({length:LIMIT+6},(_,i)=>{
