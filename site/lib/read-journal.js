@@ -153,11 +153,13 @@
     if(!store)return false;
     try{store.removeItem(KEY);return true;}catch(_){return false;}
   }
-  function csv(items){
+  function csv(items,verifiedSettlementForRead){
     const headers=["observed_at_utc","candle_closed_at_utc","market","minutes","feed",
       "chart_lean","score_minus8_to_8","closed_candle_price","ema_9","ema_20","ema_50","ema_200",
       "contract_id_if_known","contract_target_if_known","up_indicative_ask_if_fresh",
-      "down_indicative_ask_if_fresh","outcome_status","trade_status"];
+      "down_indicative_ask_if_fresh","contract_identity_linked_after_read_utc",
+      "official_settlement_state","official_settlement_outcome","official_settlement_checked_utc",
+      "chart_vs_official_outcome_not_trade_return","trade_status"];
     const field=v=>{
       const raw=String(v===null||v===undefined?"":v);
       const escaped=typeof v==="string"&&/^[=+@\t\r-]/.test(raw)?"'"+raw:raw;
@@ -167,13 +169,27 @@
     for(const item of items){
       const entry=clean(item);
       if(!entry)continue;
+      const settled=typeof verifiedSettlementForRead==="function"?verifiedSettlementForRead(entry):null;
+      const official=settled&&entry.contract&&settled.venue==="us"&&settled.id===entry.contract.id&&
+        settled.slug===entry.contract.slug&&settled.intervalMinutes===entry.intervalMinutes&&
+        ["VERIFIED_UP","VERIFIED_DOWN","NON_BINARY_SETTLEMENT"].includes(settled.state)&&
+        (settled.state==="VERIFIED_UP"&&settled.outcome==="UP"||
+         settled.state==="VERIFIED_DOWN"&&settled.outcome==="DOWN"||
+         settled.state==="NON_BINARY_SETTLEMENT"&&settled.outcome===null)
+        ?settled:null;
+      const direction=entry.bias==="BULLISH"?"UP":entry.bias==="BEARISH"?"DOWN":null;
+      const compare=official&&official.outcome&&direction?
+        (official.outcome===direction?"DIRECTION_MATCHED_NOT_PNL":"DIRECTION_DIFFERED_NOT_PNL"):
+        "NOT_EVALUATED";
       lines.push([
         entry.observedAt,entry.candleClosedAt,entry.symbol,entry.intervalMinutes,
         entry.feedSource,entry.bias,entry.score,entry.closePrice,
         entry.ema[9],entry.ema[20],entry.ema[50],entry.ema[200],
         entry.contract?.id||"",entry.contract?.target??"",
         entry.contract?.quote?.upAsk??"",entry.contract?.quote?.downAsk??"",
-        "NOT_VERIFIED","NO_TRADE_DATA"
+        entry.contract?.linkedAt??"",
+        official?.state??"NOT_VERIFIED",official?.outcome??"",official?.checkedAt??"",
+        compare,"NO_TRADE_DATA"
       ].map(field).join(","));
     }
     return lines.join("\r\n")+"\r\n";
