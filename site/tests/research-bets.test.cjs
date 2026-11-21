@@ -53,28 +53,29 @@ test("invalid ticket, too many legs and stake fail closed", () => {
   assert.equal(result.profit, null);
 });
 
-test("Bender exposes ResearchBets screenshot-first handoff without embedding or leaking images", () => {
+test("Bender hosts ResearchBets as a same-origin multi-zone route", () => {
   const site = path.join(__dirname, "..");
   const home = fs.readFileSync(path.join(site, "index.html"), "utf8");
-  const entry = fs.readFileSync(path.join(site, "research-bets/index.html"), "utf8");
+  const vercel = JSON.parse(fs.readFileSync(path.join(site, "vercel.json"), "utf8"));
   assert.ok(home.includes('href="/research-bets/">ResearchBets</a>'));
-  assert.ok(entry.includes("Upload Your Parlay"));
-  assert.ok(entry.includes("https://research-bets.vercel.app/ingest?entry=bender"));
-  assert.ok(entry.includes("Build manually"));
-  assert.ok(entry.includes("explicit handoff"));
-  assert.ok(!entry.includes("<iframe"));
-  assert.ok(!entry.includes("research-bets/math.js"));
+  assert.equal(fs.existsSync(path.join(site, "research-bets/index.html")), false);
+  const rewrites = vercel.rewrites || [];
+  assert.equal(rewrites[0].source, "/research-bets");
+  assert.equal(rewrites[1].source, "/research-bets/:path*");
+  assert.equal(rewrites[2].source, "/api/:path*");
+  assert.equal(rewrites[3].source, "/:path*");
+  assert.ok(rewrites.every((route) => route.destination.startsWith("https://research-bets-")));
+  assert.ok(rewrites.every((route) => route.destination.includes("/research-bets")));
+  assert.ok(!rewrites.some((route) => /\\bingest\\?entry=bender/.test(route.destination)));
 });
 
-test("ResearchBets preview links use paired branch while production keeps the stable canonical domain", () => {
-  const { originForHostname } = require("../research-bets/handoff.js");
-  assert.equal(originForHostname("bender-one-nu.vercel.app"), "https://research-bets.vercel.app");
-  assert.equal(originForHostname("benderbtc.vercel.app"), "https://research-bets.vercel.app");
-  assert.equal(originForHostname("bender-christopher-s-ponces-projects.vercel.app"), "https://research-bets.vercel.app");
-  assert.equal(originForHostname("localhost"), "https://research-bets.vercel.app");
-  assert.equal(originForHostname("bender-7tsi3zf5z-christopher-s-ponces-projects.vercel.app"), "https://research-bets-git-feat-ben-b4e1c2-christopher-s-ponces-projects.vercel.app");
-  const html = fs.readFileSync(path.join(__dirname, "../research-bets/index.html"), "utf8");
-  assert.ok(html.includes('data-rb-destination'));
-  assert.ok(html.includes('/research-bets/handoff.js'));
-  assert.ok(html.includes('id="rb-destination-domain"'));
+test("BTC and SPY API functions are not shadowed by gateway rewrites", () => {
+  const site = path.join(__dirname, "..");
+  const paths = ["candles", "contract", "quotes", "spot", "reference", "settlement", "polymarket"];
+  for (const name of paths) {
+    assert.ok(fs.existsSync(path.join(site, "api", name + ".js")), name + " API remains local");
+  }
+  const vercel = JSON.parse(fs.readFileSync(path.join(site, "vercel.json"), "utf8"));
+  assert.equal(vercel.buildCommand, "npm test");
+  assert.equal(vercel.outputDirectory, ".");
 });
