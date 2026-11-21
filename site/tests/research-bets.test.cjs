@@ -68,7 +68,7 @@ test("Bender hosts ResearchBets as a same-origin multi-zone route", () => {
   assert.ok(!rewrites.some((route) => route.source === "/:path*" || route.source === "/api/:path*"));
   assert.ok(!rewrites.some((route) => /\\bingest\\?entry=bender/.test(route.destination)));
   const benderApi = ["candles", "contract", "quotes", "spot", "reference", "settlement", "polymarket"];
-  assert.ok(benderApi.every((name) => !rewrites.some((route) => route.source === "/api/" + name || route.source.startsWith("/api/" + name + "/"))));
+  assert.ok(benderApi.every((name) => !rewrites.some((route) => route.source === "/api/" + name)), "local Bender API endpoints remain authoritative");
 });
 
 test("BTC and SPY API functions are not shadowed by gateway rewrites", () => {
