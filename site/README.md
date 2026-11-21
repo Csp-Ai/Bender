@@ -118,3 +118,9 @@ Mobile data-mode controls are collapsed under "Data options" but automatically l
 Past Reads, the eight-factor breakdown, research journal, verified settlement checks, chart-data sources, and export remain intact, with no changes to the model or inferred probabilities. Desktop retains its original introductory section, asset selection, dropdowns, and chart layout.
 
 Quality gates: `node --test site/tests/*.test.cjs` includes `mobile-ui.test.cjs` checks for event compatibility, practice toggle accessibility, fragment navigation, and single handoff. `node --check site/mobile-ui.js` runs in GitHub Actions. Validate the production-sized viewport and the actual Polymarket app handoff with Omar before promoting this draft PR.
+
+## v0.9.4.1 stress-tested QA patch (review branch)
+
+The browser now hides Polymarket's live contract section while practice candles are active, rejects malformed indicative prices (including values above 100¢) in the *display layer*, and validates exact BTC contract intervals and identifiers. These bugs surfaced in actual headless-browser fault tests and have regression tests. The quick-start QA notes and optional browser tests are in [qa/README.md](qa/README.md); the complete observed results and limits are in [the stress-test report](../docs/STRESS_TEST_V0941.md).
+
+To reproduce with local Chromium support, install Playwright **only for testing** and run `npm run qa:browser`. Default `npm test` remains dependency-free. The current evidence is 63 Node unit tests, 22 Python tests, 5 viewport scenarios and 7 browser fault scenarios passed in an isolated sandbox. No throughput SLA, exchange quote age, Safari app-link validation, or profitable strategy claim is established.
