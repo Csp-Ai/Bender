@@ -53,14 +53,28 @@ test("invalid ticket, too many legs and stake fail closed", () => {
   assert.equal(result.profit, null);
 });
 
-test("Bender navigation routes to native builder and dependencies load in order", () => {
+test("Bender exposes ResearchBets screenshot-first handoff without embedding or leaking images", () => {
   const site = path.join(__dirname, "..");
   const home = fs.readFileSync(path.join(site, "index.html"), "utf8");
-  const builder = fs.readFileSync(path.join(site, "research-bets/index.html"), "utf8");
-  for (const markup of [home, builder]) assert.ok(markup.includes('href="/research-bets/"'));
-  assert.ok(home.includes('href="/research-bets/">Research Bets</a>'));
-  assert.ok(builder.includes("MANUAL ODDS"));
-  assert.ok(builder.includes("predicted win rate"));
-  assert.ok(builder.indexOf("research-bets/math.js") < builder.indexOf("research-bets/research-bets.js"));
-  assert.ok(!builder.includes("<iframe"));
+  const entry = fs.readFileSync(path.join(site, "research-bets/index.html"), "utf8");
+  assert.ok(home.includes('href="/research-bets/">ResearchBets</a>'));
+  assert.ok(entry.includes("Upload Your Parlay"));
+  assert.ok(entry.includes("https://research-bets.vercel.app/ingest?entry=bender"));
+  assert.ok(entry.includes("Build manually"));
+  assert.ok(entry.includes("explicit handoff"));
+  assert.ok(!entry.includes("<iframe"));
+  assert.ok(!entry.includes("research-bets/math.js"));
+});
+
+test("ResearchBets preview links use paired branch while production keeps the stable canonical domain", () => {
+  const { originForHostname } = require("../research-bets/handoff.js");
+  assert.equal(originForHostname("bender-one-nu.vercel.app"), "https://research-bets.vercel.app");
+  assert.equal(originForHostname("benderbtc.vercel.app"), "https://research-bets.vercel.app");
+  assert.equal(originForHostname("bender-christopher-s-ponces-projects.vercel.app"), "https://research-bets.vercel.app");
+  assert.equal(originForHostname("localhost"), "https://research-bets.vercel.app");
+  assert.equal(originForHostname("bender-7tsi3zf5z-christopher-s-ponces-projects.vercel.app"), "https://research-bets-git-feat-ben-b4e1c2-christopher-s-ponces-projects.vercel.app");
+  const html = fs.readFileSync(path.join(__dirname, "../research-bets/index.html"), "utf8");
+  assert.ok(html.includes('data-rb-destination'));
+  assert.ok(html.includes('/research-bets/handoff.js'));
+  assert.ok(html.includes('id="rb-destination-domain"'));
 });

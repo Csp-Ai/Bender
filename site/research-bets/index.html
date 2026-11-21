@@ -4,100 +4,85 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0A101E" />
-  <meta name="description" content="Build and inspect a research-first sports parlay, with transparent odds math and concentration warnings." />
-  <title>Research Bets | Bender</title>
+  <meta name="description" content="ResearchBets in Bender: upload a sportsbook screenshot, verify each leg, and examine the ticket's structural risk." />
+  <title>ResearchBets | Bender</title>
   <link rel="stylesheet" href="/styles.css?v=0.9.5" />
-  <link rel="stylesheet" href="/research-bets/research-bets.css?v=1" />
+  <link rel="stylesheet" href="/research-bets/research-bets.css?v=2" />
 </head>
 <body>
 <div class="shell">
   <aside class="sidebar">
     <a class="brand" href="/" aria-label="Bender home"><div class="brand-icon">B<span>↗</span></div><div><div class="brand-name">BENDER<span class="dot">.</span></div><div class="brand-line">RESEARCH FIRST</div></div></a>
-    <div class="section-label">THE SETUP</div>
+    <div class="section-label">RESEARCH DESTINATIONS</div>
     <nav class="nav" aria-label="Main navigation">
-      <a href="/" class="nav-item"><span>▥</span> Chart check <i>01</i></a>
-      <a href="/research-bets/" class="nav-item active" aria-current="page"><span>◈</span> Research Bets <i>02</i></a>
-      <a href="/#history" class="nav-item"><span>◇</span> Past reads <i>03</i></a>
+      <a href="/" class="nav-item"><span>₿</span> Bitcoin <i>01</i></a>
+      <a href="/" class="nav-item"><span>S</span> SPY <i>02</i></a>
+      <a href="/research-bets/" class="nav-item active" aria-current="page"><span>◈</span> ResearchBets <i>03</i></a>
     </nav>
     <div class="section-label markets-heading">WHAT WE RESEARCH</div>
     <a href="/" class="market-row"><div class="coin-symbol bitcoin">₿</div><div><b>Bitcoin</b><small>BTC / USD</small></div></a>
     <a href="/" class="market-row"><div class="coin-symbol spy">S</div><div><b>S&amp;P 500 ETF</b><small>SPY</small></div></a>
-    <div class="market-row"><div class="coin-symbol rb-icon">R</div><div><b>Research Bets</b><small>Sports / parlays</small></div><span class="market-indicator"></span></div>
-    <div class="side-bottom"><div class="crew-card"><div class="crew-label">BUILT BY</div><div class="avatars"><span>C</span><span>O</span><div>Chris <small>×</small> Omar</div></div><p>Investigate the thesis before risking the stake.</p></div><a class="github" href="https://github.com/Csp-Ai/Bender" target="_blank" rel="noopener">⌘ &nbsp; GitHub repository <span>↗</span></a></div>
+    <a href="/research-bets/" class="market-row" aria-current="page"><div class="coin-symbol rb-icon">R</div><div><b>ResearchBets</b><small>Sports / ticket research</small></div><span class="market-indicator"></span></a>
+    <div class="side-bottom"><div class="crew-card"><div class="crew-label">BUILT BY</div><div class="avatars"><span>C</span><span>O</span><div>Chris <small>×</small> Omar</div></div><p>Investigate the ticket before risking the stake.</p></div><a class="github" href="https://github.com/Csp-Ai/Bender" target="_blank" rel="noopener noreferrer">⌘ &nbsp; GitHub repository <span>↗</span></a></div>
   </aside>
   <main class="main rb-main">
-    <header class="topbar"><div class="breadcrumbs">BENDER <span>/</span> <strong>RESEARCH BETS</strong></div><div class="top-right"><span class="build">PARLAY LAB v1</span></div></header>
-    <nav class="rb-mobile-nav" aria-label="Bender navigation">
-      <a href="/">BTC + SPY</a><a href="/research-bets/" class="active" aria-current="page">Research Bets</a><a href="/#history">Past Reads</a>
+    <header class="topbar"><div class="breadcrumbs">BENDER <span>/</span> <strong>RESEARCHBETS</strong></div><div class="top-right"><span class="build">SPORTS DECISION INTELLIGENCE</span></div></header>
+    <nav class="rb-mobile-nav" aria-label="Bender research destinations">
+      <a href="/">Bitcoin</a><a href="/">SPY</a><a href="/research-bets/" class="active" aria-current="page">ResearchBets</a>
     </nav>
     <section class="rb-intro">
-      <div class="section-kicker">02 / RESEARCH BETS</div>
-      <h1>Build the ticket. <span>Challenge every leg.</span></h1>
-      <p>Put the parlay together, calculate the payout, and expose weak assumptions before you place anything. This is a research workspace, not a sportsbook or betting tipster.</p>
-      <div class="rb-status-pills"><span>MANUAL ODDS</span><span>READ-ONLY</span><span>BROWSER-LOCAL DRAFT</span></div>
+      <div class="section-kicker">03 / RESEARCHBETS</div>
+      <h1>Show the ticket. <span>Understand the risk.</span></h1>
+      <p>Start with a sportsbook screenshot. Review the extracted selections, challenge every leg, and inspect the full ticket in ResearchBets Ticket X-Ray. Research first. No picks or promised outcomes.</p>
+      <div class="rb-status-pills"><span>SCREENSHOT FIRST</span><span>REVIEW BEFORE ANALYSIS</span><span>NO BETS PLACED</span></div>
     </section>
-    <section class="rb-workspace" aria-label="Parlay builder">
+    <section class="rb-workspace rb-entry" aria-label="ResearchBets entry">
       <div class="rb-layout">
         <div class="rb-left">
-          <section class="rb-panel">
-            <div class="rb-panel-head"><div><div class="section-kicker">01 / CREATE A LEG</div><h2>Parlay builder</h2></div><span class="rb-chip">Up to 10 legs</span></div>
-            <p class="rb-help">Enter the actual sportsbook line and where you found it. Nothing is filled with invented odds.</p>
-            <form id="rb-leg-form" class="rb-form" autocomplete="off">
-              <div class="rb-fields two">
-                <label>Sport<select id="rb-sport"><option>NFL</option><option>NBA</option><option>MLB</option><option>NHL</option><option>NCAAF</option><option>NCAAB</option><option>UFC / MMA</option><option>Soccer</option><option>Other</option></select></label>
-                <label>Market<select id="rb-market"><option>Player prop</option><option>Moneyline</option><option>Spread</option><option>Game total</option><option>Fight winner</option><option>Other</option></select></label>
-              </div>
-              <label>Event / matchup<input id="rb-event" type="text" maxlength="120" placeholder="e.g. Team A vs Team B" required /></label>
-              <label>Selection / line<input id="rb-selection" type="text" maxlength="140" placeholder="e.g. Player 20+ points" required /></label>
-              <div class="rb-fields two">
-                <label>American odds<input id="rb-odds" type="text" inputmode="numeric" maxlength="7" placeholder="-115 or +140" required /></label>
-                <label>Sportsbook / source<input id="rb-source" type="text" maxlength="100" placeholder="e.g. FanDuel" /></label>
-              </div>
-              <label>Why this leg? <span class="rb-optional">Research notes</span><textarea id="rb-evidence" rows="2" maxlength="600" placeholder="Recent form, matchup, minutes/snaps, injuries, or why you would pass"></textarea></label>
-              <div id="rb-form-error" class="rb-form-error" role="alert" hidden></div>
-              <button id="rb-add" class="rb-primary" type="submit">+ Add to ticket</button>
-            </form>
+          <section class="rb-panel rb-entry-panel">
+            <div class="section-kicker">01 / START WITH YOUR TICKET</div>
+            <h2>Upload Your Parlay</h2>
+            <p class="rb-help">Tap below to open ResearchBets' secure ingestion screen, then select a screenshot from your phone. OCR runs there and you can inspect or correct its findings before X-Ray.</p>
+            <a class="rb-primary rb-entry-primary" href="https://research-bets.vercel.app/ingest?entry=bender" data-rb-destination rel="noopener noreferrer">Upload Your Parlay <span aria-hidden="true">↗</span></a>
+            <p class="rb-handoff-note">You will continue at <strong id="rb-destination-domain">research-bets.vercel.app</strong>. This is an explicit handoff, not an embedded screenshot uploader. No image or betting data is passed in the link.</p>
+            <div class="rb-divider"></div>
+            <h3>Other ways to start</h3>
+            <div class="rb-entry-options">
+              <a class="rb-secondary" href="https://research-bets.vercel.app/ingest?entry=bender" data-rb-destination rel="noopener noreferrer">Paste ticket text</a>
+              <a class="rb-secondary" href="https://research-bets.vercel.app/slip" data-rb-destination rel="noopener noreferrer">Build manually</a>
+            </div>
           </section>
-          <section class="rb-panel rb-legs-panel" aria-labelledby="rb-legs-title">
-            <div class="rb-panel-head"><div><div class="section-kicker">02 / THE TICKET</div><h2 id="rb-legs-title">Your legs <span id="rb-leg-count">(0)</span></h2></div><button id="rb-clear" type="button" class="rb-text-button" disabled>Clear</button></div>
-            <div id="rb-legs" class="rb-legs" aria-live="polite"><p class="rb-empty">No legs yet. Add a selection to start your research slip.</p></div>
+          <section class="rb-panel">
+            <div class="section-kicker">02 / UNDERSTAND THE RESULT</div>
+            <h2>Ticket X-Ray</h2>
+            <p class="rb-help">ResearchBets evaluates ticket-wide dependencies, same-game pressure, repeated players, threshold demands and missing evidence. A structural warning is not a calibrated probability.</p>
+            <a class="rb-outline-link" href="https://research-bets.vercel.app/stress-test" data-rb-destination rel="noopener noreferrer">Open Ticket X-Ray</a>
           </section>
         </div>
         <div class="rb-right">
-          <section class="rb-panel rb-summary" aria-labelledby="rb-summary-title">
-            <div class="rb-panel-head"><div><div class="section-kicker">03 / TICKET X-RAY</div><h2 id="rb-summary-title">Slip snapshot</h2></div><span id="rb-flag-count" class="rb-chip">0 flags</span></div>
-            <label class="rb-stake-label" for="rb-stake">Hypothetical stake ($)</label>
-            <input id="rb-stake" type="number" min="0" max="1000000" step="0.01" placeholder="Optional" inputmode="decimal" />
-            <div class="rb-metrics">
-              <div><small>COMBINED AMERICAN ODDS</small><strong id="rb-combined">—</strong></div>
-              <div><small>THEORETICAL IMPLIED RATE*</small><strong id="rb-implied">—</strong></div>
-              <div><small>GROSS RETURN</small><strong id="rb-return">—</strong></div>
-              <div><small>NET PROFIT</small><strong id="rb-profit">—</strong></div>
-            </div>
-            <p class="rb-metric-note">*Calculated mechanically from entered prices assuming independent legs. It is <strong>not</strong> a predicted win rate, fair probability, or validated edge. Sportsbook vig and same-game correlation matter.</p>
-            <div class="rb-divider"></div>
-            <h3>What could break this?</h3>
-            <div id="rb-flags" class="rb-flags" aria-live="polite"><p class="rb-empty">Add legs to see structure and evidence warnings.</p></div>
-            <div class="rb-actions">
-              <button id="rb-copy" class="rb-primary" type="button" disabled>Copy research brief</button>
-              <a class="rb-secondary" href="https://research-bets.vercel.app/stress-test" target="_blank" rel="noopener noreferrer">Open full Ticket X-Ray ↗</a>
-            </div>
-            <p id="rb-save-status" class="rb-save-status" role="status">Draft stays on this device. No bet is submitted.</p>
+          <section class="rb-panel">
+            <div class="section-kicker">THE DECISION LOOP</div>
+            <h2>One ticket. One research lifecycle.</h2>
+            <ol class="rb-journey">
+              <li><strong>Discover + Build</strong><span>Upload, paste or build your selections</span></li>
+              <li><strong>Ticket X-Ray</strong><span>Find primary pressure and missing facts</span></li>
+              <li><strong>Ticket Pulse</strong><span>Monitor placed tickets where evidence permits</span></li>
+              <li><strong>Ticket Autopsy + Memory</strong><span>Review verified outcomes only</span></li>
+            </ol>
+            <a class="rb-outline-link" href="https://research-bets.vercel.app/" data-rb-destination rel="noopener noreferrer">Explore ResearchBets</a>
           </section>
-          <section class="rb-panel rb-research-card">
-            <div class="section-kicker">MORE RESEARCH POWER</div>
-            <h2>Already built: ResearchBets</h2>
-            <p>Use your existing ResearchBets platform for the deeper discover → build → stress-test → track → review workflow. This Bender builder is an independent local draft; it does not synchronize slips to ResearchBets.</p>
-            <a class="rb-outline-link" href="https://research-bets.vercel.app/" target="_blank" rel="noopener noreferrer">Launch ResearchBets ↗</a>
+          <section class="rb-panel rb-limitations">
+            <div class="section-kicker">INTEGRATION STATUS</div>
+            <h2>Canonical engine, separate site</h2>
+            <p>ResearchBets owns OCR, ticket drafts, provider enrichment, X-Ray and reviewed bettor history. Bender provides the branded entry point. The sites do not yet share login, draft state or a same-origin API bridge.</p>
+            <p>Unknown fields remain unknown. Screenshots are not evidence that a wager was placed, and uploaded odds are not automatically current prices.</p>
           </section>
-          <p class="rb-bottom-note">Research only. Odds and payouts reflect what you type, not a live provider feed. No bets, account connections, or automatic tickets. Always verify event details, updated lines and eligibility directly with the sportsbook.</p>
         </div>
       </div>
-      <footer><span>BENDER / CHRIS × OMAR</span><span>RESEARCH THE LEG → STRESS THE TICKET → YOUR CALL</span></footer>
+      <footer><span>BENDER / CHRIS × OMAR</span><span>SHOW THE TICKET → UNDERSTAND THE RISK → IMPROVE THE DECISION</span></footer>
     </section>
   </main>
 </div>
-<script defer src="/research-bets/math.js?v=1"></script>
-<script defer src="/research-bets/research-bets.js?v=1"></script>
+  <script defer src="/research-bets/handoff.js"></script>
 </body>
 </html>

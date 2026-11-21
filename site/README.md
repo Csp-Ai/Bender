@@ -145,3 +145,25 @@ The Bender navigation includes **Research Bets** at \`/research-bets/\`. It is a
 - The entered odds are **not a live odds feed**. The mechanically computed implied rate assumes independent outcomes, ignores sportsbook vig and same-game dependence, and is neither a forecast nor a performance claim.
 
 Validation: \`node --test site/tests/research-bets.test.cjs\` from repository root, or \`npm test\` from \`site/\`. Verify route and asset HTTP responses after deploying a Git ref with the \`site/\` project root.
+
+## ResearchBets screenshot-first integration (November 2026)
+Bender presents the third destination at `/research-bets/`. It hands users to the canonical
+ResearchBets Next.js application at `https://research-bets.vercel.app/ingest?entry=bender`
+for OCR, candidate review, draft management and Ticket X-Ray. No screenshot bytes, raw text,
+cookies or credentials cross the Bender URL boundary. The branded handoff is deliberate:
+the two Vercel projects are not configured with a secure same-origin bridge.
+The former standalone manual parlay builder JS and math are retained only as historical
+reference and regression fixtures, not loaded by the entry route. Do not restore a
+second independent X-Ray/odds engine in Bender.
+The BTC and SPY chart routes and APIs are intentionally unchanged.
+
+### Paired preview routing
+The `/research-bets/` entry's `handoff.js` keeps production Bender
+domains pointed to `https://research-bets.vercel.app`. When accessed on a
+Bender Vercel **preview hostname**, it routes annotated handoff links to the
+stable ResearchBets feature-branch preview alias instead. This permits
+cross-project acceptance testing without redirecting preview users into
+the old ResearchBets production UI. The original link path and query are
+preserved and no screenshot, ticket body, session token or credentials are
+ever added to these links. Preview routes may require Vercel team access.
+Remove/update the paired branch alias after the feature is merged or closed.
