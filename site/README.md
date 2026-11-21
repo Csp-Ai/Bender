@@ -98,3 +98,13 @@ The Past Reads section appears below the live trading handoff, and is collapsed 
 No automatic contract-result reconciliation or live trade information is captured. New records only appear after a verified current chart feed responds, so page load, network outage, background tabs, practice mode and closed/stale candles do not create simulated historical observations. Future model training must not treat these records as authoritative fills, prediction outcomes or historical point-in-time market quotes.
 
 Verification: `node --test site/tests/read-journal.test.cjs` and `node --check site/lib/read-journal.js` can be run locally. Full regression suite and browser end-to-end remain separate release gates.
+
+## v0.9.3 official US contract settlement lookup (review branch)
+
+**Past Reads** can now manually check official Polymarket US settlement values for historical chart reads that contain a verified market identity and have passed their contract end time. The server first verifies the exact market slug, market ID, BTC Up/Down terms, 5m/15m horizon, window, and opening target via `GET /v1/market/slug/{slug}`; only then does it request `GET /v1/markets/{slug}/settlement`. A numeric settlement of 1 maps to YES/Up, 0 to NO/Down, and a fractional value is reported as nonbinary. Missing, delayed, mismatched and malformed settlement data fail closed. The API's `checkedAt` is Bender's retrieval timestamp, **not** the exchange's official settlement publication time.
+
+Official outcome evidence is saved separately from the original chart observation. Bender compares chart lean and verified settlement direction descriptively ("direction matched" or "direction differed"), **never calling it an executed trade or calculating P&L**. A verified contract that becomes available after the chart read may be linked retroactively as metadata with an explicit `linkedAt` timestamp. **Historical order book quotes are never backdated**. CSV exports may include separately matched, verified settlement state, checked timestamp, and the descriptive direction comparison.
+
+This is a **manual, read-only, local-device feature**. Up to eight distinct eligible unverified market IDs are checked per click. An upstream 404 often means an outcome is not yet published; Bender displays "awaiting settlement" and permits retry rather than inferring a winner. No cross-device synchronization, user-specific bets, or historical settlement time are asserted.
+
+The Vercel preview build now runs the browser-side Node test suite using the site's `package.json`; `site/vercel.json` preserves the static root and serverless functions. The Python unit suite and iPhone end-to-end checks still need independent verification.
