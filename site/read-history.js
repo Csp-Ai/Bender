@@ -51,6 +51,8 @@
         ["50 EMA",price(item.ema[50])],
         ["200 EMA",price(item.ema[200])],
         ["Contract context",item.contract?"US "+item.contract.intervalMinutes+"m · "+item.contract.id:"Not recorded"],
+        ["Contract verified for read",item.contract?.linkedAt?"Linked afterward at "+when(item.contract.linkedAt):
+          item.contract?"Known when chart was recorded":"Not available"],
         ["Indicative quote",item.contract?.quote
           ?"UP "+(item.contract.quote.upAsk===null?"--":Math.round(item.contract.quote.upAsk*100)+"¢")+
            " / DOWN "+(item.contract.quote.downAsk===null?"--":Math.round(item.contract.quote.downAsk*100)+"¢")
