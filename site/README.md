@@ -78,3 +78,7 @@ Exchange OHLC timestamps identify the candle **opening**, not its closing. The q
 The chart endpoint returns a non-cacheable response plus an explicit `lastCandleClosedAt` field. The chart checks for new completed candles every 15 seconds while visible, refreshes when users return to the tab, and reassesses freshness every second without waiting for the next fetch. A small provider delay is allowed around each boundary. When a new completed candle is overdue, the UI hides the old up/down bias and rule score instead of passing it off as current. It retains the historical last-close price with a clear delayed label. Outside regular US trading hours, SPY is shown as historical data rather than a live stock session.
 
 The mobile last-candle price is given a full-width row so it does not split the cents onto another line.
+
+## v0.9 review branch (not yet deployed)
+
+A new `/api/contract?interval=5|15` verifies market metadata independently of bids/asks. A separate `/api/quotes?slug=<verified-slug>` checks indicative bid/ask data; no quote means unavailable, never a fabricated percentage. The mobile market card renders target/countdown immediately and states quote freshness and unverified research edge independently. No model probability or trading execution has been added. See historical research instructions in `../research/README.md`.
