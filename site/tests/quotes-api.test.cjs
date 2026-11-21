@@ -3,7 +3,7 @@ const test=require("node:test");
 const assert=require("node:assert/strict");
 const handler=require("../api/quotes");
 // Request caches survive between tests in one Node process.
-test.beforeEach(()=>handler._cache.clear());
+test.beforeEach(()=>{handler._cache.clear();handler._resetRateLimit();});
 const SLUG="btc-updown-5m-verified-test";
 const reply=(body,status=200)=>({ok:status>=200&&status<300,status,async json(){return body;}});
 function invoke(slug){
