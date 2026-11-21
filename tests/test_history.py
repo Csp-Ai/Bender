@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from research.history import collect_day, normalize_market, utc_time, sha256
+from research.coverage import audit
 
 US_MARKET = {
     "id": "123", "slug": "btc-updown-15m-demo", "closed": True,
@@ -84,6 +85,16 @@ class HistoryTests(unittest.TestCase):
             records = (home / "markets.jsonl").read_text()
             self.assertEqual(sha256(records), a["normalized_sha256"])
             self.assertEqual(len(list((home / "raw").glob("*.json"))), 1)
+
+    def test_coverage_reports_only_observed_records(self):
+        session = Session({"markets": [US_MARKET]})
+        with tempfile.TemporaryDirectory() as root:
+            collect_day("us", "2026-11-18", root, session=session)
+            report = audit(root)
+            items = report["venue_coverage"]["us"]["15"]
+            self.assertEqual(items["observed_market_records"], 1)
+            self.assertEqual(items["verified_resolutions"], 0)
+            self.assertEqual(items["completeness"], "not_verified")
 
     def test_page_cap_does_not_claim_completed_coverage(self):
         session = Session({"markets": [US_MARKET]})
