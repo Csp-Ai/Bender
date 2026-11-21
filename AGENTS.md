@@ -10,3 +10,6 @@ Read README.md, docs/PRODUCT.md and docs/ROADMAP.md before changes. This is a **
 - Any new indicator must include description and tests covering boundaries and invalid input.
 - API keys belong in environment variables, not committed files or log output.
 - Prefer small reviewable PRs. Run `python -m unittest discover -s tests -v` before merges.
+
+- For historical research, keep International and US separate, retain immutable raw payload hashes, reject naive timestamps and future-data leakage, and never assume quote history or outcomes from closed status.
+- Treat GitHub Actions failures with no step logs as a release blocker; do not silently claim tests passed.
