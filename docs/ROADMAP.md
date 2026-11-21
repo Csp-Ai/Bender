@@ -104,3 +104,16 @@
 - [ ] Server-side verified contract settlement ingestion and historical signal comparison
 - [ ] Historical quote replay and calibrated probability metrics
 - [ ] Confirm UI quality and in-browser storage on Omar's device
+
+## v0.9.3 — verified US settlement evidence on Past Reads
+- [x] Read-only official US settlement endpoint, with exact BTC market identity and term validation
+- [x] Distinguish verified binary Up/Down, fractional settlement, awaiting settlement, malformed result and unavailable feed
+- [x] Explicitly mark check timestamp as local retrieval, not exchange publication time
+- [x] Manual, bounded Past Reads result check, separate local verified settlement cache and descriptive direction comparison
+- [x] Link known official contract metadata discovered after chart capture with an honest later `linkedAt`; never infer prior quotes
+- [x] Export settlement evidence conditionally when market identity, target, time and numeric value match
+- [x] Gate preview builds on Node regression suite and keep static/site API routes working
+- [ ] Confirm late-arriving actual US settlement result (not just awaiting state) against multiple live archived contracts
+- [ ] Complete full historical US metadata and settlement backfill; currently only individually observed and checked markets
+- [ ] Verify on Omar's iPhone and investigate GitHub Actions environment failures
+- [ ] Obtain point-in-time historical execution quotes before claiming return or strategy edge
