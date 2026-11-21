@@ -62,6 +62,11 @@
       result.contract={venue:"us",id:m.id,slug:m.slug,intervalMinutes:m.intervalMinutes,
         target:m.target,startsAt:new Date(timeMs(m.startsAt)).toISOString(),
         endsAt:new Date(timeMs(m.endsAt)).toISOString()};
+      // A verified market may have been associated AFTER the chart read.
+      // Preserve that provenance; it is not evidence the market was known then.
+      const linked=timeMs(m.linkedAt);
+      if(Number.isFinite(linked)&&linked>=observed&&linked<=timeMs(m.endsAt)&&linked<=Date.now()+5000)
+        result.contract.linkedAt=new Date(linked).toISOString();
       // Accept either a fresh raw market-context snapshot or our own stored
       // canonical quote shape. Validate against the ORIGINAL observation time,
       // not the current time when Past Reads is reopened days later.
@@ -112,6 +117,38 @@
       return {saved:true,count:entries.length,entry};
     }catch(_){return {saved:false,reason:"storage_unavailable"};}
   }
+  function linkMarket(market,store=storageOrNull(),linkedAt=new Date().toISOString()){
+    // Late market discovery may enrich the metadata of an existing read,
+    // but NEVER fabricate a historical ask or change its original chart score.
+    const attached=timeMs(linkedAt),starts=timeMs(market?.startsAt),ends=timeMs(market?.endsAt);
+    if(!store||market?.venue!=="us"||typeof market.id!=="string"||
+       !/^[a-zA-Z0-9_-]{1,90}$/.test(market.id)||
+       typeof market.slug!=="string"||!/^[a-z0-9-]{4,180}$/.test(market.slug)||
+       ![5,15].includes(market.intervalMinutes)||
+       !finite(market.target)||market.target<=0||
+       !Number.isFinite(starts)||!Number.isFinite(ends)||
+       ends-starts!==market.intervalMinutes*60000||
+       !Number.isFinite(attached)||attached>ends||attached<starts||attached>Date.now()+5000)
+      return {linked:0,reason:"invalid_market_context"};
+    const rows=read(store);
+    let linked=0;
+    const changed=rows.map(row=>{
+      const observed=timeMs(row.observedAt);
+      if(row.symbol!=="BTC/USD"||row.intervalMinutes!==market.intervalMinutes||row.contract||
+         observed<starts||observed>=ends||observed>attached)return row;
+      const context={venue:"us",id:market.id,slug:market.slug,
+        intervalMinutes:market.intervalMinutes,target:market.target,
+        startsAt:market.startsAt,endsAt:market.endsAt,
+        linkedAt:linkedAt};
+      const entry=clean({...row,contract:context});
+      if(!entry?.contract)return row;
+      linked++;
+      return entry;
+    });
+    if(!linked)return {linked:0,reason:"no_matching_unlinked_read"};
+    try{store.setItem(KEY,JSON.stringify(changed));return {linked};}
+    catch(_){return {linked:0,reason:"storage_unavailable"};}
+  }
   function clear(store=storageOrNull()){
     if(!store)return false;
     try{store.removeItem(KEY);return true;}catch(_){return false;}
@@ -141,5 +178,5 @@
     }
     return lines.join("\r\n")+"\r\n";
   }
-  return Object.freeze({KEY,LIMIT,clean,read,record,clear,csv});
+  return Object.freeze({KEY,LIMIT,clean,read,record,linkMarket,clear,csv});
 });
