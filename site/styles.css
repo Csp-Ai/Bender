@@ -108,3 +108,9 @@
  .quick-top{align-items:flex-start}
  .quick-status{text-align:right;line-height:1.5;max-width:53%}
 }
+
+/* v0.9: quote retrieval never blocks verified contract metadata. */
+.poly-readiness{margin:0 0 11px;padding:9px 12px;border:1px solid #3E6286;background:#11243A;color:#BDD7ED;border-radius:8px;font-size:11px;line-height:1.5}
+.poly-readiness[data-state="available"]{border-color:#277A64;color:#A5E4C9;background:#0E312B}
+.poly-decision{margin:12px 0 2px;padding:10px 12px;border:1px solid #4D5A70;border-radius:8px;color:#D1D9E6;background:#141E30;font-size:11px;line-height:1.6;font-weight:600}
+@media(max-width:530px){.poly-readiness{font-size:10px;padding:9px}.poly-decision{font-size:10px;padding:9px}.poly-cell>strong{font-size:clamp(16px,4.2vw,21px)}}
