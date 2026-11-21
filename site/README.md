@@ -156,3 +156,14 @@ The former standalone manual parlay builder JS and math are retained only as his
 reference and regression fixtures, not loaded by the entry route. Do not restore a
 second independent X-Ray/odds engine in Bender.
 The BTC and SPY chart routes and APIs are intentionally unchanged.
+
+### Paired preview routing
+The `/research-bets/` entry's `handoff.js` keeps production Bender
+domains pointed to `https://research-bets.vercel.app`. When accessed on a
+Bender Vercel **preview hostname**, it routes annotated handoff links to the
+stable ResearchBets feature-branch preview alias instead. This permits
+cross-project acceptance testing without redirecting preview users into
+the old ResearchBets production UI. The original link path and query are
+preserved and no screenshot, ticket body, session token or credentials are
+ever added to these links. Preview routes may require Vercel team access.
+Remove/update the paired branch alias after the feature is merged or closed.
