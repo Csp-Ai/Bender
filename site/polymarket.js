@@ -187,6 +187,15 @@
       quoteAt=0;priceUpdatedAt=0;
     }
     market=m;marketCheckedAt=Date.parse(data.checkedAt)||Date.now();
+    // A verified contract can arrive after the first chart snapshot. Attach
+    // identity to that old read with a later linkage timestamp, never a quote
+    // backdated to the original chart observation.
+    const journal=window.BenderReadJournal;
+    if(journal&&typeof journal.linkMarket==="function"){
+      const result=journal.linkMarket({venue:"us",id:String(m.id),slug:m.slug,
+        intervalMinutes:interval,target:m.target,startsAt:m.startsAt,endsAt:m.endsAt});
+      if(result.linked>0)window.dispatchEvent(new CustomEvent("bender:read-recorded"));
+    }
     $("poly-message").hidden=true;$("poly-fields").hidden=false;
     $("poly-market-name").textContent="BTC Up or Down";
     $("poly-window").textContent=interval+" MIN";
