@@ -28,6 +28,14 @@
       "destination": "https://research-bets-git-feat-v12-a7883a-christopher-s-ponces-projects.vercel.app/research-bets/:path*"
     },
     {
+      "source": "/api/sports",
+      "destination": "https://research-bets-git-feat-v12-a7883a-christopher-s-ponces-projects.vercel.app/research-bets/api/sports"
+    },
+    {
+      "source": "/api/sports/:path*",
+      "destination": "https://research-bets-git-feat-v12-a7883a-christopher-s-ponces-projects.vercel.app/research-bets/api/sports/:path*"
+    },
+    {
       "source": "/api/analysis",
       "destination": "https://research-bets-git-feat-v12-a7883a-christopher-s-ponces-projects.vercel.app/research-bets/api/analysis"
     },
