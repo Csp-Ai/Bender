@@ -52,13 +52,14 @@
       $("score").className="stat-value muted";
     }
     const explanation=$("quick-text");
-    if(isDemo) explanation.textContent="Practice only. These candles are simulated and cannot support a real trade.";
-    else if(closed) explanation.textContent="SPY's regular trading session is closed. This is the latest available historical chart, not a live signal.";
-    else if(stale) explanation.textContent="The latest completed candle is behind the expected close time. Bender is refreshing the chart. Don't use an older trend score for a short-term contract.";
-    else {
-      const lead=a.bias==="BULLISH"?"Buyers have momentum in the recent completed candles.":a.bias==="BEARISH"?"Sellers have momentum in the recent completed candles.":"The finished candles show a mixed trend.";
-      explanation.textContent=lead+" Last candle closed "+localTime(f.closeMs)+". This is chart direction, not a BRTI settlement forecast.";
-    }
+    if(isDemo) explanation.textContent="Practice candles only. Not real market data.";
+    else if(closed) explanation.textContent="SPY session closed. Last chart read is historical.";
+    else if(stale) explanation.textContent="Chart delayed. Older trend scores are hidden until a fresh candle arrives.";
+    else explanation.textContent=a.bias==="BULLISH"
+      ?"Recent completed candles favor buyers. Chart trend only."
+      :a.bias==="BEARISH"
+        ?"Recent completed candles favor sellers. Chart trend only."
+        :"Recent completed candles show mixed direction. Chart trend only.";
   }
 
   const emaSeries=(values,span)=>window.BenderEma.series(values,span);
@@ -182,7 +183,7 @@
       $("error").textContent="Can’t check this chart right now: "+e.message+" Try again, or use Practice (Fake) to explore the layout.";
       $("error").hidden=false;
     }finally{
-      if(requestId===state.requestId){state.loading=false;state.controller=null;$("refresh").disabled=false;$("refresh").textContent="↻  Check chart";}
+      if(requestId===state.requestId){state.loading=false;state.controller=null;$("refresh").disabled=false;$("refresh").textContent="↻  Refresh";}
     }
   }
   function rememberRead(){
