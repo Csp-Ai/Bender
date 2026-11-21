@@ -35,7 +35,7 @@ module.exports=async function handler(req,res){
     // quoteTime is server retrieval time, not exchange publication time.
     const hasQuote=!!quotes&&(quotes.upAsk!==null||quotes.downAsk!==null);
     return res.status(200).json({
-      slug,available:hasQuote,state:hasQuote?"QUOTE_AVAILABLE":"AWAITING_QUOTE",
+      slug,source:"Polymarket US",available:hasQuote,state:hasQuote?"QUOTE_AVAILABLE":"AWAITING_QUOTE",
       quotes:hasQuote?quotes:null,indicative,
       checkedAt:new Date().toISOString(),timestampSemantics:"server_retrieval",
       warning:warning||null,
