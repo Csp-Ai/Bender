@@ -14,7 +14,7 @@
   const SYMBOLS=new Set(["BTC/USD","SPY"]);
   const BIASES=new Set(["BULLISH","BEARISH","NEUTRAL"]);
   const PERIODS=[9,20,50,200];
-  const MAX_OBSERVATION_LAG_MS=120000;
+  const CLOSE_GRACE_MS=45000;
   function storageOrNull(){
     try{return root?.localStorage||null;}catch(_){return null;}
   }
@@ -32,7 +32,7 @@
        !finite(raw.closePrice)||raw.closePrice<=0||!Array.isArray(raw.votes)||raw.votes.length!==8)return null;
     const observed=timeMs(raw.observedAt),closed=timeMs(raw.candleClosedAt);
     if(!Number.isFinite(observed)||!Number.isFinite(closed)||observed<closed||
-       observed-closed>MAX_OBSERVATION_LAG_MS||observed>Date.now()+5000)return null;
+       observed-closed>raw.intervalMinutes*60000+CLOSE_GRACE_MS||observed>Date.now()+5000)return null;
     const votes=[];
     for(const vote of raw.votes){
       if(!vote||typeof vote.name!=="string"||vote.name.length<1||vote.name.length>80||
@@ -106,6 +106,10 @@
       return {saved:true,count:entries.length,entry};
     }catch(_){return {saved:false,reason:"storage_unavailable"};}
   }
+  function clear(store=storageOrNull()){
+    if(!store)return false;
+    try{store.removeItem(KEY);return true;}catch(_){return false;}
+  }
   function csv(items){
     const headers=["observed_at_utc","candle_closed_at_utc","market","minutes","feed",
       "chart_lean","score_minus8_to_8","closed_candle_price","ema_9","ema_20","ema_50","ema_200",
@@ -127,5 +131,5 @@
     }
     return lines.join("\r\n")+"\r\n";
   }
-  return Object.freeze({KEY,LIMIT,clean,read,record,csv});
+  return Object.freeze({KEY,LIMIT,clean,read,record,clear,csv});
 });
