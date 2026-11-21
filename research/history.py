@@ -12,6 +12,7 @@ import json
 import os
 import re
 import time
+import tempfile
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -165,8 +166,9 @@ def sha256(text):
 
 def atomic_write(path, content):
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".tmp")
-    with open(temporary, "x", encoding="utf-8") as handle:
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent,
+                                     prefix=path.name + ".", suffix=".tmp", delete=False) as handle:
+        temporary = Path(handle.name)
         handle.write(content)
     os.replace(temporary, path)
 
@@ -228,9 +230,9 @@ def collect_day(venue, day, root, *, session=None, limit=100, max_pages=100):
         "matching_contracts": len(records),
         "by_interval": {str(n): sum(r["interval_minutes"] == n for r in records) for n in (5, 15)},
         "raw_pages": page_infos, "normalized_sha256": sha256(normalized),
-        "coverage": "metadata_only_not_a_quote_archive",
+        "coverage": "query_window_metadata_only_completeness_not_proven",
         "completed": True,
-        "notes": "Unverified outcomes and unavailable quote history cannot be backtested as executable trades.",
+        "notes": "API window results are not a completeness guarantee. Outcomes are unverified and quote history is not included.",
     }
     atomic_write(manifest_path, canonical_json(manifest) + "\n")
     return manifest
