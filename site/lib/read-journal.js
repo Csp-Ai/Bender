@@ -172,10 +172,17 @@
       const settled=typeof verifiedSettlementForRead==="function"?verifiedSettlementForRead(entry):null;
       const official=settled&&entry.contract&&settled.venue==="us"&&settled.id===entry.contract.id&&
         settled.slug===entry.contract.slug&&settled.intervalMinutes===entry.intervalMinutes&&
+        settled.startsAt===entry.contract.startsAt&&settled.endsAt===entry.contract.endsAt&&
+        finite(settled.target)&&Math.abs(settled.target-entry.contract.target)<0.005&&
+        Number.isFinite(timeMs(settled.checkedAt))&&
+        timeMs(settled.checkedAt)>=timeMs(entry.contract.endsAt)&&
+        timeMs(settled.checkedAt)<=Date.now()+5000&&
+        finite(settled.settlement)&&settled.settlement>=0&&settled.settlement<=1&&
         ["VERIFIED_UP","VERIFIED_DOWN","NON_BINARY_SETTLEMENT"].includes(settled.state)&&
-        (settled.state==="VERIFIED_UP"&&settled.outcome==="UP"||
-         settled.state==="VERIFIED_DOWN"&&settled.outcome==="DOWN"||
-         settled.state==="NON_BINARY_SETTLEMENT"&&settled.outcome===null)
+        (settled.state==="VERIFIED_UP"&&settled.outcome==="UP"&&settled.settlement===1||
+         settled.state==="VERIFIED_DOWN"&&settled.outcome==="DOWN"&&settled.settlement===0||
+         settled.state==="NON_BINARY_SETTLEMENT"&&settled.outcome===null&&
+           settled.settlement>0&&settled.settlement<1)
         ?settled:null;
       const direction=entry.bias==="BULLISH"?"UP":entry.bias==="BEARISH"?"DOWN":null;
       const compare=official&&official.outcome&&direction?
