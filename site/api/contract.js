@@ -24,8 +24,11 @@ module.exports=async function handler(req,res){
   const timeout=setTimeout(()=>controller.abort(),7000);
   let checked=0,metadataRetrievedAt=null,cacheStatus="miss";
   try{
-    const endMin=new Date(started-45*60000).toISOString();
-    const endMax=new Date(started+90*60000).toISOString();
+    // Quantize only the upstream search query, not the contract boundary
+    // comparison: identical requests can share one short-lived API snapshot.
+    const queryAt=Math.floor(started/1000)*1000;
+    const endMin=new Date(queryAt-45*60000).toISOString();
+    const endMax=new Date(queryAt+90*60000).toISOString();
     let selected=null;
     for(let page=0;page<4;page++){
       const url=new URL("/v1/markets",BASE);
