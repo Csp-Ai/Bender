@@ -1,6 +1,7 @@
 import unittest
 from research.evaluation import evidence_gates, probability_metrics, transitions
 from research.journal import validate_snapshot
+from research.baseline import walk_forward_base_rate
 
 
 def resolved(i, direction, at_end=True):
@@ -47,6 +48,19 @@ class EvaluationTests(unittest.TestCase):
         record["predicted_at"] = "2026-11-18T00:17:00Z"
         with self.assertRaisesRegex(ValueError, "chronologically"):
             probability_metrics([record])
+
+    def test_walk_forward_baseline_uses_only_previously_resolved_data(self):
+        rows = [resolved(0, "UP"), resolved(1, "DOWN"), resolved(2, "UP")]
+        report = walk_forward_base_rate(rows, min_training=1)
+        group = report["groups"][0]
+        self.assertEqual(group["simulated_walk_forward_predictions"], 2)
+        self.assertEqual(group["metrics"]["sample_size"], 2)
+        self.assertEqual(group["evaluation_type"], "offline_historical_simulation_not_logged_live_signals")
+
+    def test_walk_forward_excludes_late_resolutions(self):
+        rows = [resolved(0, "UP", False), resolved(1, "DOWN"), resolved(2, "UP")]
+        report = walk_forward_base_rate(rows, min_training=1)
+        self.assertEqual(report["groups"][0]["simulated_walk_forward_predictions"], 1)
 
     def test_entry_timing_requires_quote_history(self):
         self.assertEqual(evidence_gates([resolved(0, "UP")])["net_profitability"], "NOT_ESTABLISHED")
