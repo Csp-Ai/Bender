@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0A101E" />
   <meta name="description" content="Bender checks BTC and SPY charts and explains what the signals are saying, in plain English." />
   <title>Bender  -  Goated at reading charts</title>
-  <link rel="stylesheet" href="/styles.css?v=0.9.2" />
+  <link rel="stylesheet" href="/styles.css?v=0.9.3" />
 </head>
 <body>
 <div class="shell">
@@ -20,7 +20,7 @@
     <div class="side-bottom"><div class="crew-card"><div class="crew-label">BUILT BY</div><div class="avatars"><span>C</span><span>O</span><div>Chris <small>×</small> Omar</div></div><p>Built from Chris’s Gifali experience. Made for real-world decisions.</p></div><a href="https://github.com/Csp-Ai/Bender" target="_blank" rel="noopener" class="github">⌘ &nbsp; GitHub repository <span>↗</span></a></div>
   </aside>
   <main class="main">
-    <header class="topbar"><div class="breadcrumbs">BENDER <span>/</span> <strong>CHART CHECK</strong></div><div class="top-right"><span class="session">● <span id="data-status">NO DATA</span></span><span class="build">BETA v0.9.2</span></div></header>
+    <header class="topbar"><div class="breadcrumbs">BENDER <span>/</span> <strong>CHART CHECK</strong></div><div class="top-right"><span class="session">● <span id="data-status">NO DATA</span></span><span class="build">BETA v0.9.3</span></div></header>
     <section class="hero"><div><div class="eyebrow"><span class="eyedot"></span> CHART CHECK <span class="slash">//</span> BTC + SPY</div><h1>What’s the move?<br/><span>Let’s check the chart.</span></h1><p>Pick Bitcoin or SPY. Bender checks the trend, momentum, and volume - then tells you what it sees without all the trading jargon.</p></div><div class="hero-graphic" aria-hidden="true"><span class="target-ring r1"></span><span class="target-ring r2"></span><span class="target-ring r3"></span><span class="hero-arrow">↗</span></div></section>
     <section class="workspace">
       <div class="workspace-header"><div><div class="section-kicker">01 / PICK YOUR MARKET</div><h2>Get the quick read</h2></div><div class="controls">
@@ -90,7 +90,9 @@
         <summary class="history-top"><span><span class="section-kicker">06 / PAST READS</span><strong>What Bender saw</strong><small>Saved in this browser only · not a trade journal</small></span><span id="history-count" class="history-count">0 recorded</span></summary>
         <div class="history-inner">
           <p class="history-intro">Each fresh completed candle gets one timestamped eight-factor chart read with LFGI EMAs. Recorded signals are observations, not verified contract predictions or profitability.</p>
-          <div class="history-actions"><button id="history-export" type="button" disabled>Export local CSV</button><button id="history-clear" type="button" class="history-clear" disabled>Clear on this device</button></div>
+          <div class="history-actions"><button id="history-verify" type="button" disabled>Check official results</button><button id="history-export" type="button" disabled>Export local CSV</button><button id="history-clear" type="button" class="history-clear" disabled>Clear on this device</button></div>
+          <p id="history-checkable" class="history-empty">Checking saved market references...</p>
+          <p id="history-verify-status" class="history-verify-status" role="status">Official results are checked only when requested, after the contract ends.</p>
           <div id="history-list" class="history-list" aria-live="polite"><p class="history-empty">Loading locally saved chart reads...</p></div>
         </div>
       </details>
@@ -104,6 +106,7 @@
 <script src="/lib/read-journal.js?v=0.9.2" defer></script>
 <script src="/app.js?v=0.9.2" defer></script>
 <script src="/polymarket.js?v=0.9.2" defer></script>
-<script src="/read-history.js?v=0.9.2" defer></script>
+<script src="/lib/settlement-journal.js?v=0.9.3" defer></script>
+<script src="/read-history.js?v=0.9.3" defer></script>
 </body>
 </html>
