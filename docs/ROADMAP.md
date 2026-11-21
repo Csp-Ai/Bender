@@ -128,3 +128,15 @@
 - [x] Keep eight factors, Past Reads, settlement verification and 9/20/50/200 LFGI EMAs accessible
 - [ ] Confirm actual mobile browser layout, live rollover and installed-app handoff with Omar
 - [ ] Complete historical research / validation before predictive probability features
+
+## v0.9.4.1 stress QA hardening
+- [x] 63 Node unit tests and 22 Python tests passed in separate sandbox checkout
+- [x] Playwright at 320/375/390/768/1280px: no horizontal scrolling or JS errors; switching, navigation and local journal pass
+- [x] Seven degraded-feed scenarios: stale/missing/impossible quote, 20 fast toggles, chart outage recovery, missing contract, local history
+- [x] Prevent practice mode showing live Polymarket contract CTA
+- [x] Reject out-of-range market offer prices at the browser display boundary
+- [x] Verify horizon window lengths and market identity before displaying verified contract
+- [x] Check live BTC/SPY candle and US contract endpoints; no high-volume third-party load
+- [ ] Test live rollover and Polymarket app handoff on Omar's iPhone
+- [ ] Resolve GitHub Actions jobs failing without runner/steps
+- [ ] Validate full historical archive and genuine settled US outcomes
