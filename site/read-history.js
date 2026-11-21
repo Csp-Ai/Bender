@@ -124,7 +124,7 @@
   $("history-export").addEventListener("click",()=>{
     const items=journal.read();
     if(!items.length)return;
-    const data=journal.csv(items);
+    const data=journal.csv(items,item=>settlements.forRead(item));
     const url=URL.createObjectURL(new Blob([data],{type:"text/csv;charset=utf-8"}));
     const link=document.createElement("a");
     link.href=url;link.download="bender-local-chart-reads-"+new Date().toISOString().slice(0,10)+".csv";
