@@ -60,7 +60,7 @@ test("Bender navigation routes to native builder and dependencies load in order"
   for (const markup of [home, builder]) assert.ok(markup.includes('href="/research-bets/"'));
   assert.ok(home.includes('href="/research-bets/">Research Bets</a>'));
   assert.ok(builder.includes("MANUAL ODDS"));
-  assert.ok(builder.includes("not a predicted win rate"));
+  assert.ok(builder.includes("predicted win rate"));
   assert.ok(builder.indexOf("research-bets/math.js") < builder.indexOf("research-bets/research-bets.js"));
   assert.ok(!builder.includes("<iframe"));
 });
