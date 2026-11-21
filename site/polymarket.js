@@ -28,17 +28,16 @@
   function links(){
     const interval=Number($("interval").value),spy=$("pair").value==="SPY";
     const url=spy?HOME:(CATEGORIES[interval]||HOME);
-    for(const id of ["poly-market-link","polymarket-link"]){
-      $(id).href=url;
-      $(id).textContent=spy?"Open Polymarket US":"Open live BTC "+interval+"m in Polymarket";
-    }
+    const link=$("poly-market-link");
+    link.href=url;
+    link.textContent=spy?"Browse Polymarket US":"Open live BTC "+interval+"m in Polymarket";
   }
   function readiness(message,state="waiting"){
     const el=$("poly-readiness");
     if(el){el.textContent=message;el.dataset.state=state;}
   }
   function edgeState(){
-    $("poly-decision").textContent="NO VERIFIED EDGE — Bender's chart score is not a contract win probability. No calibrated model is enabled.";
+    $("poly-decision").textContent="No verified trading edge. Chart alignment is not a win probability.";
   }
   function referenceReset(message){
     $("reference-label").textContent="LIVE BTC SPOT";
