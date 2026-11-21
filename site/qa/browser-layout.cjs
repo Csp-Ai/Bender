@@ -18,7 +18,7 @@ const contract=(mins)=>{
  return {available:true,interval:mins,state:"CONTRACT_VERIFIED",market:{
     id:"fixture-"+mins,slug:"btc-updown-"+mins+"m-fixture",title:"BTC Up Down",
     startsAt:new Date(started).toISOString(),endsAt:new Date(started+ms).toISOString(),
-    target:56000,indexSymbol:"BRTI",source:"Polymarket US"},
+    target:56000,indexSymbol:"BRTI",marketType:"ASSET_PRICE_MARKET_TYPE_UP_DOWN",source:"Polymarket US"},
     checkedAt:new Date().toISOString(),source:"Polymarket US",lookupMs:8};
 };
 let calls={};
@@ -52,7 +52,7 @@ async function main(){
      return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify(candle(mins,symbol))});
    }
    if(name==="/api/contract")return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify(contract(mins))});
-   if(name==="/api/quotes")return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({slug:u.searchParams.get("slug"),available:true,state:"QUOTE_AVAILABLE",quotes:{upAsk:.57,downAsk:.45},checkedAt:new Date().toISOString()})});
+   if(name==="/api/quotes")return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({slug:u.searchParams.get("slug"),source:"Polymarket US",timestampSemantics:"server_retrieval",available:true,state:"QUOTE_AVAILABLE",quotes:{source:"best_bid_offer",upAsk:.57,downAsk:.45},checkedAt:new Date().toISOString()})});
    if(name==="/api/spot")return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({available:true,price:56001,source:"Kraken BTC/USD last trade",sampledAt:new Date().toISOString()})});
    if(name==="/api/reference")return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({available:false})});
    if(name==="/api/settlement")return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({state:"AWAITING_SETTLEMENT",outcome:null})});
