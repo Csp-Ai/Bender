@@ -1,7 +1,7 @@
 "use strict";
 (function () {
   const $ = id => document.getElementById(id);
-  const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1, requestId:0, controller:null, lastCheckedAt:0, lastClosedAt:0, feedName:""};
+  const state = {data:[], analysis:null, loading:false, source:"live", interval:5, symbol:"BTC/USD", hover:-1, requestId:0, controller:null, lastCheckedAt:0, lastClosedAt:0, feedName:"", feedSource:""};
   const colors = {up:"#51dbac",down:"#ff7182",ema9:window.BenderEma.PALETTE[9],ema20:window.BenderEma.PALETTE[20],ema50:window.BenderEma.PALETTE[50],ema200:window.BenderEma.PALETTE[200]};
   const fmt = v => Number.isFinite(v) ? "$" + new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "-";
   const shortTime = s => new Date(s * 1000).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
@@ -136,8 +136,8 @@
     $("demoBanner").hidden=state.source!=="demo";
     $("data-status").textContent="UPDATING";
     try {
-      let rows;let feedName="";
-      if(state.source==="demo"){rows=demo();feedName="Fake practice candles";}
+      let rows;let feedName="",feedSource="";
+      if(state.source==="demo"){rows=demo();feedName="Fake practice candles";feedSource="PRACTICE";}
       else {
         const url="/api/candles?symbol="+encodeURIComponent(state.symbol)+"&interval="+state.interval;
         const controller=new AbortController();state.controller=controller;
@@ -147,6 +147,7 @@
           const json=await response.json();
           if(!response.ok)throw new Error(json.error||"Market feed unavailable");
           rows=json.candles;
+          feedSource=json.source;
           feedName=json.source==="YAHOO_FINANCE"?"Yahoo Finance SPY candles":json.source==="ALPACA_IEX"?"Alpaca IEX SPY candles":"Kraken BTC spot candles";
         }finally{clearTimeout(timeout);}
       }
@@ -157,10 +158,12 @@
       state.analysis=analyze(rows);
       state.data=rows;
       state.feedName=feedName;
+      state.feedSource=feedSource;
       state.lastClosedAt=(state.analysis.last.t+state.interval*60)*1000;
       state.lastCheckedAt=Date.now();
       state.hover=-1;
       render();
+      rememberRead();
       const info=freshness();
       $("data-status").textContent=state.source==="demo"?"PRACTICE MODE":info?.status==="MARKET_CLOSED"?"SPY / MARKET CLOSED":info?.status==="DELAYED"?"CHART DELAYED":state.symbol==="SPY"?"SPY / STOCK CHART":"BTC / KRAKEN CHART";
       $("updated").textContent="Last checked "+new Date(state.lastCheckedAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+" | "+feedName;
@@ -181,6 +184,26 @@
     }finally{
       if(requestId===state.requestId){state.loading=false;state.controller=null;$("refresh").disabled=false;$("refresh").textContent="↻  Check chart";}
     }
+  }
+  function rememberRead(){
+    const j=window.BenderReadJournal;
+    if(!j||state.source!=="live"||!state.analysis||!state.data.length)return;
+    const info=freshness();
+    if(!info||info.status!=="FRESH")return;
+    const a=state.analysis;
+    const context=state.symbol==="BTC/USD"&&typeof window.BenderLiveContractContext==="function"
+      ?window.BenderLiveContractContext():null;
+    const saved=j.record({
+      version:1,symbol:state.symbol,intervalMinutes:state.interval,
+      feedSource:state.feedSource,
+      observedAt:new Date(state.lastCheckedAt).toISOString(),
+      candleClosedAt:new Date(state.lastClosedAt).toISOString(),
+      closePrice:a.last.c,bias:a.bias,score:a.score,
+      ema:{9:a.e9.at(-1),20:a.e20.at(-1),50:a.e50.at(-1),200:a.e200.at(-1)},
+      votes:a.votes.map(v=>({name:v.name,dir:v.dir})),
+      contract:context
+    });
+    if(saved.saved)window.dispatchEvent(new CustomEvent("bender:read-recorded",{detail:{count:saved.count}}));
   }
   function render(){
     const a=state.analysis,rows=state.data,scoreDirection=Math.sign(a.score);
