@@ -27,3 +27,6 @@ jobs:
           node --check site/polymarket.js
           node --check site/api/contract.js
           node --check site/api/quotes.js
+          node --check site/lib/ema.js
+          node --check site/lib/read-journal.js
+          node --check site/read-history.js
