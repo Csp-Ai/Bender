@@ -111,7 +111,7 @@
       clearQuotes("Quote response arrived too late; waiting for a fresh quote.");
       return;
     }
-    const safe=window.BenderQuoteSafety.extract(data);
+    const safe=window.BenderQuoteSafety.extract(data,Date.now(),market?.slug);
     if(!safe.fresh){
       clearQuotes("Quote response is stale or invalid. Waiting for a fresh quote.");
       return;
@@ -184,7 +184,9 @@
     if(!Number.isFinite(start)||!Number.isFinite(end)||start>Date.now()+10000||end<=Date.now()||
        end-start!==interval*60000||
        !/^[A-Za-z0-9_-]{1,90}$/.test(String(m.id||""))||
-       !/^[a-z0-9][a-z0-9-]{3,179}$/.test(String(m.slug||"")))
+       !/^[a-z0-9][a-z0-9-]{3,179}$/.test(String(m.slug||""))||
+       m.indexSymbol!=="BRTI"||m.marketType!=="ASSET_PRICE_MARKET_TYPE_UP_DOWN"||
+       typeof m.target!=="number"||!Number.isFinite(m.target)||m.target<=0)
       return noContract("Contract feed returned invalid market identity or window. Rechecking...");
     const switched=identity(market)!==identity(m);
     if(switched){
