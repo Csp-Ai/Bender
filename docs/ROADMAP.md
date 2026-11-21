@@ -117,3 +117,14 @@
 - [ ] Complete full historical US metadata and settlement backfill; currently only individually observed and checked markets
 - [ ] Verify on Omar's iPhone and investigate GitHub Actions environment failures
 - [ ] Obtain point-in-time historical execution quotes before claiming return or strategy edge
+
+## v0.9.4 — Mobile UX consolidation (review branch)
+- [x] Remove promotional hero from mobile landing while preserving desktop branding
+- [x] Sticky Live / Chart / Past Reads jump navigation on phones
+- [x] Single-tap 5m/15m controls, using existing native change-event flow for both data/contract APIs
+- [x] Collapse data-mode options without weakening fake/demo warnings
+- [x] Remove duplicate Polymarket CTA and repeated primary-card disclaimers
+- [x] Preserve one visible verified contract action, SPY browse-only path, stale quotes and no-verified-edge note
+- [x] Keep eight factors, Past Reads, settlement verification and 9/20/50/200 LFGI EMAs accessible
+- [ ] Confirm actual mobile browser layout, live rollover and installed-app handoff with Omar
+- [ ] Complete historical research / validation before predictive probability features
