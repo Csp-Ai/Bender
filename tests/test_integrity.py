@@ -95,6 +95,27 @@ class IntegrityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "horizon counts"):
                 verify_day_archive(location)
 
+    def test_legacy_manifest_without_verified_page_size_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            location = self.setup_archive(root)
+            path = location / "manifest.json"
+            manifest = json.loads(path.read_text())
+            manifest["schema_version"] = 1
+            manifest.pop("page_limit", None)
+            path.write_text(canonical_json(manifest) + "\n")
+            with self.assertRaisesRegex(ValueError, "unsupported manifest"):
+                verify_day_archive(location)
+
+    def test_truncated_terminal_page_cannot_claim_complete_coverage(self):
+        with tempfile.TemporaryDirectory() as root:
+            location = self.setup_archive(root)
+            path = location / "manifest.json"
+            manifest = json.loads(path.read_text())
+            manifest["page_limit"] = 1  # The final page is full, so more pages may exist.
+            path.write_text(canonical_json(manifest) + "\n")
+            with self.assertRaisesRegex(ValueError, "Incomplete pagination"):
+                verify_day_archive(location)
+
     def test_interrupted_page_checkpoint_resumes_without_requerying_first_page(self):
         with tempfile.TemporaryDirectory() as root:
             stopped = InterruptSession()
