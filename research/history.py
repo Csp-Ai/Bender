@@ -241,8 +241,8 @@ def collect_day(venue, day, root, *, session=None, limit=100, max_pages=100):
     normalized = "".join(canonical_json(r) + "\n" for r in records)
     atomic_write(location / "markets.jsonl", normalized)
     manifest = {
-        "schema_version": 1, "venue": venue, "utc_day": day.isoformat(),
-        "collected_at": retrieved_at, "page_count": len(page_infos),
+        "schema_version": 2, "venue": venue, "utc_day": day.isoformat(),
+        "collected_at": retrieved_at, "page_limit": limit, "page_count": len(page_infos),
         "matching_contracts": len(records),
         "by_interval": {str(n): sum(r["interval_minutes"] == n for r in records) for n in (5, 15)},
         "raw_pages": page_infos, "normalized_sha256": sha256(normalized),
