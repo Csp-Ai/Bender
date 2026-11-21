@@ -208,7 +208,7 @@
       if(priceRequest){priceRequest.abort();priceRequest=null;}
       quoteAt=0;priceUpdatedAt=0;
     }
-    market=m;marketCheckedAt=Date.parse(data.checkedAt)||Date.now();
+    market=m;marketCheckedAt=Date.parse(data.metadataRetrievedAt)||Date.parse(data.checkedAt)||Date.now();
     // A verified contract can arrive after the first chart snapshot. Attach
     // identity to that old read with a later linkage timestamp, never a quote
     // backdated to the original chart observation.
