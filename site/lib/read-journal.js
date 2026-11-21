@@ -62,13 +62,19 @@
       result.contract={venue:"us",id:m.id,slug:m.slug,intervalMinutes:m.intervalMinutes,
         target:m.target,startsAt:new Date(timeMs(m.startsAt)).toISOString(),
         endsAt:new Date(timeMs(m.endsAt)).toISOString()};
-      if(m.quoteCheckedAt&&Number.isFinite(timeMs(m.quoteCheckedAt))&&
-         timeMs(m.quoteCheckedAt)<=observed&&observed-timeMs(m.quoteCheckedAt)<=12000){
-        const up=finite(m.upAsk)&&m.upAsk>0&&m.upAsk<1?m.upAsk:null;
-        const down=finite(m.downAsk)&&m.downAsk>0&&m.downAsk<1?m.downAsk:null;
+      // Accept either a fresh raw market-context snapshot or our own stored
+      // canonical quote shape. Validate against the ORIGINAL observation time,
+      // not the current time when Past Reads is reopened days later.
+      const quotedAt=m.quoteCheckedAt||m.quote?.retrievedAt;
+      const upRaw=m.quote?m.quote.upAsk:m.upAsk;
+      const downRaw=m.quote?m.quote.downAsk:m.downAsk;
+      if(quotedAt&&Number.isFinite(timeMs(quotedAt))&&
+         timeMs(quotedAt)<=observed&&observed-timeMs(quotedAt)<=12000){
+        const up=finite(upRaw)&&upRaw>0&&upRaw<1?upRaw:null;
+        const down=finite(downRaw)&&downRaw>0&&downRaw<1?downRaw:null;
         if(up!==null||down!==null){
           result.contract.quote={upAsk:up,downAsk:down,
-            retrievedAt:new Date(timeMs(m.quoteCheckedAt)).toISOString(),
+            retrievedAt:new Date(timeMs(quotedAt)).toISOString(),
             type:"indicative_ask_not_guaranteed_execution"};
         }
       }
