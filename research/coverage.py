@@ -13,9 +13,8 @@ def audit(root):
     root = Path(root)
     inventory = defaultdict(list)
     for path in sorted(root.glob("*/????-??-??/manifest.json")):
-        manifest = json.loads(path.read_text(encoding="utf-8"))
-        if manifest.get("completed") is not True:
-            continue
+        from .integrity import verify_day_archive
+        manifest = verify_day_archive(path.parent)
         venue = manifest.get("venue")
         if venue not in ("us", "international"):
             continue
