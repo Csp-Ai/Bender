@@ -9,9 +9,22 @@
   const clock=x=>new Date(x).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});
   const validAt=x=>Number.isFinite(Date.parse(x))&&Date.parse(x)<=Date.now()+5000;
   let market=null,marketRequest=null,quoteRequest=null,priceRequest=null,marketCheckedAt=0;
-  let generation=0,quoteAt=0,priceUpdatedAt=0,officialAvailable=false,officialStatusAt=0,expiredRefresh=false;
+  let generation=0,quoteAt=0,latestQuotes=null,priceUpdatedAt=0,officialAvailable=false,officialStatusAt=0,expiredRefresh=false;
   const active=()=>$("pair").value==="BTC/USD"&&$("source").value==="live"&&document.visibilityState==="visible";
   const identity=m=>m&&[m.id,m.slug,m.endsAt].join("|");
+  // Read-only context for the chart journal. Only market IDs already verified
+  // by contract discovery are included; indicative quotes must remain fresh.
+  window.BenderLiveContractContext=()=>{
+    if(!market||!active()||Date.parse(market.endsAt)<=Date.now())return null;
+    const context={venue:"us",id:String(market.id),slug:market.slug,
+      intervalMinutes:Number($("interval").value),target:market.target,
+      startsAt:market.startsAt,endsAt:market.endsAt};
+    if(latestQuotes&&quoteAt>0&&Date.now()-quoteAt<=12000){
+      context.quoteCheckedAt=new Date(quoteAt).toISOString();
+      context.upAsk=latestQuotes.upAsk;context.downAsk=latestQuotes.downAsk;
+    }
+    return context;
+  };
   function links(){
     const interval=Number($("interval").value),spy=$("pair").value==="SPY";
     const url=spy?HOME:(CATEGORIES[interval]||HOME);
@@ -82,7 +95,7 @@
     }finally{clearTimeout(timeout);if(priceRequest===ctrl)priceRequest=null;}
   }
   function clearQuotes(message){
-    quoteAt=0;
+    quoteAt=0;latestQuotes=null;
     $("poly-up-label").textContent="BUY UP";
     $("poly-down-label").textContent="BUY DOWN";
     $("poly-up").textContent="Unavailable";$("poly-down").textContent="Unavailable";
@@ -110,10 +123,10 @@
       $("poly-up-caption").textContent="Indicative ask · not a forecast";
       $("poly-down-caption").textContent="Indicative ask · not a forecast";
       $("poly-feed-tag").textContent="CONTRACT + INDICATIVE QUOTES";
-      quoteAt=Date.parse(data.checkedAt);
+      quoteAt=Date.parse(data.checkedAt);latestQuotes={upAsk:up,downAsk:down};
       readiness("Indicative quotes retrieved "+clock(quoteAt)+". Exchange publication time is not verified.","available");
     }else{
-      quoteAt=0;
+      quoteAt=0;latestQuotes=null;
       if(hasLast){
         $("poly-up-label").textContent="UP LAST TRADE";
         $("poly-down-label").textContent="DOWN IMPLIED REFERENCE";
@@ -155,7 +168,7 @@
   }
   function noContract(message){
     if(market){generation++;if(quoteRequest){quoteRequest.abort();quoteRequest=null;}if(priceRequest){priceRequest.abort();priceRequest=null;}}
-    market=null;quoteAt=0;marketCheckedAt=0;
+    market=null;quoteAt=0;latestQuotes=null;marketCheckedAt=0;
     $("poly-message").hidden=false;$("poly-message").textContent=message;
     $("poly-fields").hidden=true;
     $("poly-feed-tag").textContent="SEARCHING FOR CONTRACT";
