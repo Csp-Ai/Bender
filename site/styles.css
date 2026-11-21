@@ -114,3 +114,14 @@
 .poly-readiness[data-state="available"]{border-color:#277A64;color:#A5E4C9;background:#0E312B}
 .poly-decision{margin:12px 0 2px;padding:10px 12px;border:1px solid #4D5A70;border-radius:8px;color:#D1D9E6;background:#141E30;font-size:11px;line-height:1.6;font-weight:600}
 @media(max-width:530px){.poly-readiness{font-size:10px;padding:9px}.poly-decision{font-size:10px;padding:9px}.poly-cell>strong{font-size:clamp(16px,4.2vw,21px)}}
+
+/* LFGI chart palette: 9 green, 20 yellow, 50 orange, 200 red.
+   Preserve BTC candle up/down colors independently of EMA colors. */
+.leg-ema9{color:#22C55E}
+.leg-ema20{color:#FACC15}
+.leg-ema50{color:#F97316}
+.leg-ema200{color:#EF4444}
+.chart-top .legend{display:flex;flex-wrap:wrap;gap:9px 14px;max-width:100%}
+.chart-top .legend span{white-space:nowrap}
+.chart-top .legend i{width:16px;border-top-width:3px}
+@media(max-width:540px){.chart-top .legend{width:100%;gap:8px 12px;font-size:10px}.chart-top .legend span{flex:0 0 auto}}
