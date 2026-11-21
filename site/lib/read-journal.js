@@ -54,7 +54,7 @@
     };
     // Optional market context is retained only if source and time window are verified.
     const m=raw.contract;
-    if(m&&m.venue==="us"&&typeof m.id==="string"&&m.id.length<90&&
+    if(m&&m.venue==="us"&&typeof m.id==="string"&&/^[a-zA-Z0-9_-]{1,90}$/.test(m.id)&&
        typeof m.slug==="string"&&/^[a-z0-9-]{4,180}$/.test(m.slug)&&
        m.intervalMinutes===raw.intervalMinutes&&finite(m.target)&&m.target>0&&
        Number.isFinite(timeMs(m.startsAt))&&Number.isFinite(timeMs(m.endsAt))&&
@@ -115,7 +115,11 @@
       "chart_lean","score_minus8_to_8","closed_candle_price","ema_9","ema_20","ema_50","ema_200",
       "contract_id_if_known","contract_target_if_known","up_indicative_ask_if_fresh",
       "down_indicative_ask_if_fresh","outcome_status","trade_status"];
-    const field=v=>'"'+String(v===null||v===undefined?"":v).replace(/"/g,'""')+'"';
+    const field=v=>{
+      const raw=String(v===null||v===undefined?"":v);
+      const escaped=typeof v==="string"&&/^[=+@\t\r-]/.test(raw)?"'"+raw:raw;
+      return '"'+escaped.replace(/"/g,'""')+'"';
+    };
     const lines=[headers.map(field).join(",")];
     for(const item of items){
       const entry=clean(item);
