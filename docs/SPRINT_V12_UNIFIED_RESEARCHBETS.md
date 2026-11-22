@@ -34,3 +34,14 @@ The two integration branches intentionally target their respective already-open 
 - Branch-specific Vercel preview setting RESEARCHBETS_BENDER_MOUNT=1 now configured on ResearchBets integration branch.
 
 **Still NO-GO**: Official Vercel deployment/build quota HTTP 402, protected preview SSO prevents public Bender reverse proxy, cross-zone authentication/navigation/screenshot e2e and physical iPhone acceptance unverified. The Bender rewrite currently references a protected branch-preview hostname that must be replaced with a stable publicly accessible integration zone. Production unchanged.
+
+## Integration release review (2026-11-22)
+
+- Added and verified the ResearchBets branch-specific domain `research-bets-bender.vercel.app`, pinned to `feat/v12-unified-sports-entry-20261121`. It resolves in Vercel's project-domain and deployment records, and retains the existing standalone production domain. Its public HTTP behavior has not been independently tested end to end.
+- Changed all 74 Bender ResearchBets rewrites to the integration domain. Verified the config has unique, scoped rewrite sources and does not shadow Bender's exact local BTC/SPY endpoint names.
+- Deployed Bender preview from commit `46b0b352247e0b24e3a0013c41dd8e14a91ccb0c` with explicit `site/` project root, Node 22, and `npm test` build gate. Vercel recorded READY and **77/77 passing Node tests**. The first deployment attempt omitted root/test build settings and is not usable as proof; use only the explicitly configured preview and later descendants.
+- Updated the review UI build marker to `BETA v1.2` (commit `d14d35c4d8bd03ab4da8ae195de0453947008825`). This commit still requires its own preview build and release QA.
+- The Vercel quota limit documented on November 21 is not currently blocking these Bender previews; it may recur if deployment limits are reached. ResearchBets' latest feature deployment also reports READY, but its original preview hostname is protected; the new domain's public access and proxied behavior still require real HTTP/iPhone verification.
+- GitHub Actions `unit-tests` checks continue to fail before runner steps appear, despite Vercel's passing Bender Node suite. A workflow rerun has been requested. The standalone Python suite and end-to-end browser tests still require CI or equivalent new-commit verification.
+
+**Release gate remains NO-GO:** Do not merge the stacked PRs or promote the production deployment until both projects' latest-commit previews, public proxy routing, screenshot OCR, app navigation/auth cookies, live provider provenance, BTC/SPY regressions, and physical mobile acceptance are confirmed. Keep `bender-one-nu.vercel.app` unchanged meanwhile.
