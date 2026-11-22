@@ -17,5 +17,303 @@
     }
   ],
   "buildCommand": "npm test",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/research-bets",
+      "destination": "https://research-bets-bender.vercel.app/research-bets"
+    },
+    {
+      "source": "/research-bets/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/:path*"
+    },
+    {
+      "source": "/api/sports",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/sports"
+    },
+    {
+      "source": "/api/sports/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/sports/:path*"
+    },
+    {
+      "source": "/api/analysis",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/analysis"
+    },
+    {
+      "source": "/api/anon",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/anon"
+    },
+    {
+      "source": "/api/bets",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/bets"
+    },
+    {
+      "source": "/api/bettor-data",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/bettor-data"
+    },
+    {
+      "source": "/api/bettor-memory",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/bettor-memory"
+    },
+    {
+      "source": "/api/community",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/community"
+    },
+    {
+      "source": "/api/cron",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/cron"
+    },
+    {
+      "source": "/api/dashboard",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/dashboard"
+    },
+    {
+      "source": "/api/dev",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/dev"
+    },
+    {
+      "source": "/api/edge",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/edge"
+    },
+    {
+      "source": "/api/env",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/env"
+    },
+    {
+      "source": "/api/events",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/events"
+    },
+    {
+      "source": "/api/experiments",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/experiments"
+    },
+    {
+      "source": "/api/feed",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/feed"
+    },
+    {
+      "source": "/api/games",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/games"
+    },
+    {
+      "source": "/api/governor",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/governor"
+    },
+    {
+      "source": "/api/health",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/health"
+    },
+    {
+      "source": "/api/history-bets",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/history-bets"
+    },
+    {
+      "source": "/api/ideas",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/ideas"
+    },
+    {
+      "source": "/api/live",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/live"
+    },
+    {
+      "source": "/api/metrics",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/metrics"
+    },
+    {
+      "source": "/api/odds",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/odds"
+    },
+    {
+      "source": "/api/outcomes",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/outcomes"
+    },
+    {
+      "source": "/api/postmortem",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/postmortem"
+    },
+    {
+      "source": "/api/profile",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/profile"
+    },
+    {
+      "source": "/api/provider-health",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/provider-health"
+    },
+    {
+      "source": "/api/research",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/research"
+    },
+    {
+      "source": "/api/researchSnapshot",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/researchSnapshot"
+    },
+    {
+      "source": "/api/results",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/results"
+    },
+    {
+      "source": "/api/run",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/run"
+    },
+    {
+      "source": "/api/slips",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/slips"
+    },
+    {
+      "source": "/api/telemetry",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/telemetry"
+    },
+    {
+      "source": "/api/today",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/today"
+    },
+    {
+      "source": "/api/u",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/u"
+    },
+    {
+      "source": "/api/analysis/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/analysis/:path*"
+    },
+    {
+      "source": "/api/anon/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/anon/:path*"
+    },
+    {
+      "source": "/api/bets/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/bets/:path*"
+    },
+    {
+      "source": "/api/bettor-data/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/bettor-data/:path*"
+    },
+    {
+      "source": "/api/bettor-memory/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/bettor-memory/:path*"
+    },
+    {
+      "source": "/api/community/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/community/:path*"
+    },
+    {
+      "source": "/api/cron/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/cron/:path*"
+    },
+    {
+      "source": "/api/dashboard/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/dashboard/:path*"
+    },
+    {
+      "source": "/api/dev/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/dev/:path*"
+    },
+    {
+      "source": "/api/edge/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/edge/:path*"
+    },
+    {
+      "source": "/api/env/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/env/:path*"
+    },
+    {
+      "source": "/api/events/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/events/:path*"
+    },
+    {
+      "source": "/api/experiments/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/experiments/:path*"
+    },
+    {
+      "source": "/api/feed/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/feed/:path*"
+    },
+    {
+      "source": "/api/games/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/games/:path*"
+    },
+    {
+      "source": "/api/governor/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/governor/:path*"
+    },
+    {
+      "source": "/api/health/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/health/:path*"
+    },
+    {
+      "source": "/api/history-bets/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/history-bets/:path*"
+    },
+    {
+      "source": "/api/ideas/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/ideas/:path*"
+    },
+    {
+      "source": "/api/live/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/live/:path*"
+    },
+    {
+      "source": "/api/metrics/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/metrics/:path*"
+    },
+    {
+      "source": "/api/odds/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/odds/:path*"
+    },
+    {
+      "source": "/api/outcomes/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/outcomes/:path*"
+    },
+    {
+      "source": "/api/postmortem/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/postmortem/:path*"
+    },
+    {
+      "source": "/api/profile/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/profile/:path*"
+    },
+    {
+      "source": "/api/provider-health/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/provider-health/:path*"
+    },
+    {
+      "source": "/api/research/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/research/:path*"
+    },
+    {
+      "source": "/api/researchSnapshot/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/researchSnapshot/:path*"
+    },
+    {
+      "source": "/api/results/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/results/:path*"
+    },
+    {
+      "source": "/api/run/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/run/:path*"
+    },
+    {
+      "source": "/api/settlement/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/settlement/:path*"
+    },
+    {
+      "source": "/api/slips/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/slips/:path*"
+    },
+    {
+      "source": "/api/telemetry/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/telemetry/:path*"
+    },
+    {
+      "source": "/api/today/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/today/:path*"
+    },
+    {
+      "source": "/api/u/:path*",
+      "destination": "https://research-bets-bender.vercel.app/research-bets/api/u/:path*"
+    },
+    {
+      "source": "/ocr-assets/:path*",
+      "destination": "https://research-bets-bender.vercel.app/ocr-assets/:path*"
+    }
+  ]
 }
